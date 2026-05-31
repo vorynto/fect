@@ -27,7 +27,10 @@ export function usePageContent(pageKey: string) {
   const getTitle = (key: string, fallback = '') =>
     content[key]?.title ?? fallback
 
+  const getImage = (key: string, fallback = '') =>
+    content[key]?.image_url || fallback
+
   const getSection = (key: string) => content[key] ?? null
 
-  return { content, loading, get, getTitle, getSection }
+  return { content, loading, get, getTitle, getImage, getSection }
 }

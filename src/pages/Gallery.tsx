@@ -9,7 +9,7 @@ import type { GalleryAlbum } from '../types'
 export default function Gallery() {
   const [albums, setAlbums] = useState<GalleryAlbum[]>([])
   const [loading, setLoading] = useState(true)
-  const { getTitle, get } = usePageContent('gallery')
+  const { getTitle, get, getImage } = usePageContent('gallery')
 
   useEffect(() => {
     supabase
@@ -27,7 +27,7 @@ export default function Gallery() {
     <div>
       {/* Hero */}
       <section className="py-28 relative bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1600&q=80)' }}>
+        style={{ backgroundImage: `url(${getImage('hero', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1600&q=80')})` }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <h1 className="text-5xl font-extrabold mb-4 text-white">{getTitle('hero', 'Our Gallery')}</h1>

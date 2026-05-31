@@ -7,7 +7,7 @@ const fadeUp = {
 }
 
 export default function OurStory() {
-  const { getTitle, get } = usePageContent('our_story')
+  const { getTitle, get, getImage } = usePageContent('our_story')
 
   const heroTitle   = getTitle('hero', 'About Us')
   const heroDesc    = get('hero', 'From three friends with a vision to an organisation that has touched thousands of lives across Tamil Nadu.')
@@ -33,7 +33,7 @@ export default function OurStory() {
     <div>
       {/* Hero */}
       <section className="py-28 relative bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1526958097901-5e6d742d3371?w=1600&q=80)' }}>
+        style={{ backgroundImage: `url(${getImage('hero', 'https://images.unsplash.com/photo-1526958097901-5e6d742d3371?w=1600&q=80')})` }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-5xl font-extrabold mb-4 text-white">

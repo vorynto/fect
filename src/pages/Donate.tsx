@@ -50,7 +50,7 @@ export default function Donate() {
   const [processing, setProcessing] = useState(false)
   const [success, setSuccess] = useState(false)
   const [paymentId, setPaymentId] = useState('')
-  const { getTitle, get } = usePageContent('donate')
+  const { getTitle, get, getImage } = usePageContent('donate')
   const { settings } = useSettings()
   // Prefer the admin-configured key; fall back to the build-time env var
   const razorpayKey = settings.razorpay_key_id?.trim() || ENV_RAZORPAY_KEY
@@ -156,10 +156,13 @@ export default function Donate() {
     <div>
       {/* Hero */}
       <section
-        className="py-28 relative"
-        style={{ background: 'linear-gradient(135deg, var(--site-heading-color) 0%, #2d3748 100%)' }}
+        className="py-28 relative bg-cover bg-center"
+        style={getImage('hero')
+          ? { backgroundImage: `url(${getImage('hero')})` }
+          : { background: 'linear-gradient(135deg, var(--site-heading-color) 0%, #2d3748 100%)' }}
       >
-        <div className="max-w-4xl mx-auto px-6 text-center text-white">
+        {getImage('hero') && <div className="absolute inset-0 bg-black/60" />}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <Heart size={56} className="mx-auto mb-5 opacity-80" style={{ color: 'var(--site-primary)' }} />
           <h1 className="text-5xl font-extrabold mb-4 text-white">{getTitle('hero', 'Make a Donation')}</h1>
           <p className="text-xl text-gray-300">

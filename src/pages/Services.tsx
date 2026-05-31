@@ -22,7 +22,7 @@ const iconBullets: Record<string, string[]> = {
 
 export default function Services() {
   const [programs, setPrograms] = useState<Program[]>([])
-  const { getTitle, get } = usePageContent('services')
+  const { getTitle, get, getImage } = usePageContent('services')
 
   useEffect(() => {
     supabase.from('programs').select('*').eq('is_active', true).order('sort_order')
@@ -53,7 +53,7 @@ export default function Services() {
   return (
     <div>
       <section className="py-28 relative bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1600&q=80)' }}>
+        style={{ backgroundImage: `url(${getImage('hero', 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1600&q=80')})` }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <h1 className="text-5xl font-extrabold mb-4 text-white">{heroTitle}</h1>

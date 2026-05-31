@@ -11,7 +11,7 @@ const splitPipe = (s: string) => (s || '').split('|').map(p => p.trim()).filter(
 
 export default function Contact() {
   const { settings } = useSettings()
-  const { getTitle, get } = usePageContent('contact')
+  const { getTitle, get, getImage } = usePageContent('contact')
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -36,7 +36,7 @@ export default function Contact() {
   return (
     <div>
       <section className="py-28 relative bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1600&q=80)' }}>
+        style={{ backgroundImage: `url(${getImage('hero', 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?w=1600&q=80')})` }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <h1 className="text-5xl font-extrabold mb-4 text-white">{heroTitle}</h1>

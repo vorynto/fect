@@ -8,7 +8,7 @@ import type { Testimonial } from '../types'
 export default function Testimonials() {
   const [items, setItems] = useState<Testimonial[]>([])
   const [loading, setLoading] = useState(true)
-  const { getTitle, get } = usePageContent('testimonials')
+  const { getTitle, get, getImage } = usePageContent('testimonials')
 
   useEffect(() => {
     supabase
@@ -25,7 +25,7 @@ export default function Testimonials() {
   return (
     <div>
       <section className="py-28 relative bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1600&q=80)' }}>
+        style={{ backgroundImage: `url(${getImage('hero', 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1600&q=80')})` }}>
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white">
           <h1 className="text-5xl font-extrabold mb-4 text-white">{getTitle('hero', 'Voices of Change')}</h1>

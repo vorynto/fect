@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save } from 'lucide-react'
+import { Save, Upload, Image as ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { PageContent } from '../../types'
 
-const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string; contentLabel?: string; titleHint?: string; contentHint?: string }[]> = {
+const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string; contentLabel?: string; image?: boolean }[]> = {
   Home: [
     { key: 'about',     label: 'About FECT',        titleLabel: 'Section Heading', contentLabel: 'Body Text' },
     { key: 'donate_cta',label: 'Donate CTA',         titleLabel: 'Heading',         contentLabel: 'Description' },
@@ -18,7 +18,7 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'process_4', label: 'Process Step 4',     titleLabel: 'Step Title',      contentLabel: 'Description' },
   ],
   'About Us': [
-    { key: 'hero',      label: 'Hero Banner',        titleLabel: 'Page Title',      contentLabel: 'Subtitle' },
+    { key: 'hero',      label: 'Hero Banner',        titleLabel: 'Page Title',      contentLabel: 'Subtitle', image: true },
     { key: 'founding',  label: 'Founding Story',     titleLabel: 'Section Heading', contentLabel: 'Body Text' },
     { key: 'mission',   label: 'Our Mission',        titleLabel: 'Heading',         contentLabel: 'Mission Statement' },
     { key: 'vision',    label: 'Our Vision',         titleLabel: 'Heading',         contentLabel: 'Vision Statement' },
@@ -31,7 +31,7 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'reg_section',label: '80G Note',          titleLabel: 'Value',           contentLabel: '' },
   ],
   'Our Services': [
-    { key: 'hero',      label: 'Hero Banner',        titleLabel: 'Page Title',      contentLabel: 'Subtitle' },
+    { key: 'hero',      label: 'Hero Banner',        titleLabel: 'Page Title',      contentLabel: 'Subtitle', image: true },
     { key: 'process_1', label: 'Process Step 1',     titleLabel: 'Step Title',      contentLabel: 'Description' },
     { key: 'process_2', label: 'Process Step 2',     titleLabel: 'Step Title',      contentLabel: 'Description' },
     { key: 'process_3', label: 'Process Step 3',     titleLabel: 'Step Title',      contentLabel: 'Description' },
@@ -40,19 +40,19 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'cta_content',label: 'Bottom CTA Text',   titleLabel: '',                contentLabel: 'Body Text' },
   ],
   Gallery: [
-    { key: 'hero', label: 'Hero Banner', titleLabel: 'Page Title', contentLabel: 'Subtitle' },
+    { key: 'hero', label: 'Hero Banner', titleLabel: 'Page Title', contentLabel: 'Subtitle', image: true },
   ],
   Testimonials: [
-    { key: 'hero', label: 'Hero Banner', titleLabel: 'Page Title', contentLabel: 'Subtitle' },
+    { key: 'hero', label: 'Hero Banner', titleLabel: 'Page Title', contentLabel: 'Subtitle', image: true },
   ],
   Contact: [
-    { key: 'hero',           label: 'Hero Banner',        titleLabel: 'Page Title',  contentLabel: 'Subtitle' },
+    { key: 'hero',           label: 'Hero Banner',        titleLabel: 'Page Title',  contentLabel: 'Subtitle', image: true },
     { key: 'info',           label: 'Intro Text',         titleLabel: 'Heading',     contentLabel: 'Body Text' },
     { key: 'member_title',   label: 'Membership Card',    titleLabel: 'Card Heading',contentLabel: '' },
     { key: 'member_content', label: 'Membership Body',    titleLabel: '',            contentLabel: 'Body Text' },
   ],
   Donate: [
-    { key: 'hero',   label: 'Hero Banner',   titleLabel: 'Page Title',    contentLabel: 'Subtitle' },
+    { key: 'hero',   label: 'Hero Banner',   titleLabel: 'Page Title',    contentLabel: 'Subtitle', image: true },
     { key: 'intro',  label: 'Intro Section', titleLabel: 'Heading',       contentLabel: 'Description' },
     { key: 'tier_1', label: 'Donation Tier 1', titleLabel: 'Amount (e.g. ₹500/month)', contentLabel: 'Name|Description  (pipe-separated, e.g. Educate a Child|Sponsor school fees...)' },
     { key: 'tier_2', label: 'Donation Tier 2', titleLabel: 'Amount', contentLabel: 'Name|Description' },
@@ -74,6 +74,7 @@ const PAGE_KEY_MAP: Record<string, string> = {
 export default function AdminPages() {
   const [data, setData] = useState<Record<string, PageContent>>({})
   const [saving, setSaving] = useState<string | null>(null)
+  const [uploading, setUploading] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('Home')
   const tabs = Object.keys(SECTIONS)
 
@@ -86,8 +87,23 @@ export default function AdminPages() {
     })
   }, [])
 
-  const update = (key: string, field: 'title' | 'content', value: string) => {
+  const update = (key: string, field: 'title' | 'content' | 'image_url', value: string) => {
     setData(d => ({ ...d, [key]: { ...(d[key] || {} as PageContent), [field]: value } }))
+  }
+
+  const uploadHeroImage = async (mapKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(mapKey)
+    const ext = file.name.split('.').pop()
+    const path = `headers/${mapKey.replace('.', '-')}-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('fect-uploads').upload(path, file, { upsert: true })
+    if (error) { toast.error('Upload failed: ' + error.message); setUploading(null); return }
+    const { data: { publicUrl } } = supabase.storage.from('fect-uploads').getPublicUrl(path)
+    update(mapKey, 'image_url', publicUrl)
+    setUploading(null)
+    toast.success('Header image uploaded! Click Save to apply.')
+    e.target.value = ''
   }
 
   const handleSave = async (pageTab: string, sectionKey: string) => {
@@ -97,7 +113,7 @@ export default function AdminPages() {
     if (!item) return
     setSaving(mapKey)
     const { error } = await supabase.from('page_content').upsert(
-      { page_key: pageKey, section_key: sectionKey, title: item.title || '', content: item.content || '', updated_at: new Date().toISOString() },
+      { page_key: pageKey, section_key: sectionKey, title: item.title || '', content: item.content || '', image_url: item.image_url || '', updated_at: new Date().toISOString() },
       { onConflict: 'page_key,section_key' }
     )
     setSaving(null)
@@ -110,7 +126,7 @@ export default function AdminPages() {
     setSaving(`${pageKey}.__all__`)
     const upserts = SECTIONS[pageTab].map(s => {
       const item = data[`${pageKey}.${s.key}`]
-      return { page_key: pageKey, section_key: s.key, title: item?.title || '', content: item?.content || '', updated_at: new Date().toISOString() }
+      return { page_key: pageKey, section_key: s.key, title: item?.title || '', content: item?.content || '', image_url: item?.image_url || '', updated_at: new Date().toISOString() }
     })
     const { error } = await supabase.from('page_content').upsert(upserts, { onConflict: 'page_key,section_key' })
     setSaving(null)
@@ -201,6 +217,50 @@ export default function AdminPages() {
                       rows={3}
                       className="w-full px-3 py-2.5 rounded-lg border border-gray-200 focus:outline-none text-gray-800 text-sm resize-none"
                     />
+                  </div>
+                )}
+
+                {/* Header / banner background image */}
+                {section.image && (
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
+                      <ImageIcon size={13} /> Header Background Image
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {/* Preview */}
+                      <div
+                        className="w-full sm:w-44 h-24 rounded-lg bg-cover bg-center border border-gray-200 shrink-0 flex items-center justify-center text-xs text-gray-400 relative overflow-hidden"
+                        style={item.image_url ? { backgroundImage: `url(${item.image_url})` } : {}}
+                      >
+                        {!item.image_url && 'Default image'}
+                        {item.image_url && <div className="absolute inset-0 bg-black/30" />}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <label className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 border-dashed cursor-pointer text-sm font-medium transition-colors ${uploading === mapKey ? 'opacity-60' : 'border-gray-300 text-gray-500 hover:border-[var(--site-primary)] hover:text-[var(--site-primary)]'}`}>
+                          {uploading === mapKey ? (
+                            <><div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-[var(--site-primary)] animate-spin" /> Uploading…</>
+                          ) : (
+                            <><Upload size={14} /> Upload image</>
+                          )}
+                          <input type="file" accept="image/*" className="hidden" onChange={e => uploadHeroImage(mapKey, e)} disabled={uploading === mapKey} />
+                        </label>
+                        <input
+                          value={item.image_url || ''}
+                          onChange={e => update(mapKey, 'image_url', e.target.value)}
+                          placeholder="…or paste an image URL"
+                          className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none text-gray-800 text-xs"
+                        />
+                        {item.image_url && (
+                          <button
+                            type="button"
+                            onClick={() => update(mapKey, 'image_url', '')}
+                            className="text-xs text-red-500 hover:underline"
+                          >
+                            Remove (use default)
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
