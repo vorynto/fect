@@ -1,11 +1,18 @@
 Options -MultiViews
 RewriteEngine On
 
-# Handle HTTPS redirect
+# Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# SPA fallback — send all non-file requests to index.html
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /index.html [QSA,L]
+# Serve the built app from the /dist folder while keeping the web root at repo root.
+# 1. Avoid rewrite loops for paths already pointing at /dist
+RewriteCond %{REQUEST_URI} ^/dist/
+RewriteRule ^ - [L]
+
+# 2. Serve real built files (JS, CSS, images) from /dist
+RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
+RewriteRule ^(.*)$ dist/$1 [L]
+
+# 3. SPA fallback — every other route renders the React app
+RewriteRule ^ dist/index.html [L]

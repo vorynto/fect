@@ -13,9 +13,10 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist/
 dist-ssr
 *.local
+
+# NOTE: dist/ IS committed — Hostinger serves the built app from it via root .htaccess
 
 # Supabase migration files — keep schema private
 *.sql
