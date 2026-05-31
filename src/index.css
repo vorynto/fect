@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --site-primary: #c0392b;
+    --site-primary-dark: #962d22;
+    --site-heading-color: #1a1a2e;
+    --site-font: 'Inter', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
+    color: #374151;
+    font-family: var(--site-font);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--site-heading-color);
+    font-weight: 700;
+  }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}
+
+@layer utilities {
+  .btn-primary {
+    background-color: var(--site-primary);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary:hover {
+    background-color: var(--site-primary-dark);
+    transform: translateY(-1px);
+  }
+  .btn-outline {
+    border: 2px solid var(--site-primary);
+    color: var(--site-primary);
+    padding: 0.75rem 2rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-block;
+    background: transparent;
+    cursor: pointer;
+  }
+  .btn-outline:hover {
+    background-color: var(--site-primary);
+    color: white;
+  }
+  .section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--site-heading-color);
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+  }
+  .section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: var(--site-primary);
+    border-radius: 2px;
+  }
+  .card-hover {
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  }
+}
