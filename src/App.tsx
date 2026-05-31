@@ -27,6 +27,7 @@ import AdminDonations from './pages/admin/AdminDonations'
 import AdminPrograms from './pages/admin/AdminPrograms'
 import AdminQuotes from './pages/admin/AdminQuotes'
 import AdminNavigation from './pages/admin/AdminNavigation'
+import AdminEnquiries from './pages/admin/AdminEnquiries'
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth()
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="/admin/programs"    element={<AdminPage><AdminPrograms /></AdminPage>} />
             <Route path="/admin/quotes"      element={<AdminPage><AdminQuotes /></AdminPage>} />
             <Route path="/admin/navigation"  element={<AdminPage><AdminNavigation /></AdminPage>} />
+            <Route path="/admin/enquiries" element={<AdminPage><AdminEnquiries /></AdminPage>} />
             <Route path="/admin/donations" element={<AdminPage><AdminDonations /></AdminPage>} />
 
             {/* Fallback */}

@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Settings, Image, FileText, MessageSquare,
   LogOut, Menu, X, Heart, ChevronRight, Images, Layers,
-  Navigation, Quote
+  Navigation, Quote, Inbox
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
@@ -19,6 +19,7 @@ const nav = [
   { label: 'Programs',     path: '/admin/programs',       icon: <Layers size={18} />,          group: 'Content' },
   { label: 'Gallery',      path: '/admin/gallery',        icon: <Images size={18} />,          group: 'Content' },
   { label: 'Testimonials', path: '/admin/testimonials',   icon: <MessageSquare size={18} />,   group: 'Content' },
+  { label: 'Enquiries',    path: '/admin/enquiries',      icon: <Inbox size={18} />,            group: 'Reports' },
   { label: 'Donations',    path: '/admin/donations',      icon: <Heart size={18} />,            group: 'Reports' },
 ]
 

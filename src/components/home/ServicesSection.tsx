@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { GraduationCap, Heart, Home, Users } from 'lucide-react'
+import { GraduationCap, Heart, Home, Users, Search, CheckCircle, TrendingUp, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { usePageContent } from '../../hooks/usePageContent'
@@ -86,27 +86,75 @@ export default function ServicesSection() {
           ))}
         </div>
 
-        {/* Process */}
+        {/* Process — redesigned */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="mt-20"
         >
-          <h3 className="text-2xl font-bold text-center mb-10" style={{ color: 'var(--site-heading-color)' }}>
-            How We Work
-          </h3>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {processSteps.map((step, i) => (
-              <div key={i} className="flex flex-col items-center text-center">
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-white text-lg font-bold mb-4 shadow-md"
-                  style={{ backgroundColor: 'var(--site-primary)' }}
-                >
-                  {i + 1}
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-extrabold" style={{ color: 'var(--site-heading-color)' }}>
+              How We Work
+            </h3>
+            <p className="text-gray-500 mt-2 text-base">From referral to impact — a transparent 4-step process</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-0 relative">
+            {/* Connector line (desktop only) */}
+            <div
+              className="hidden lg:block absolute top-10 left-[12.5%] right-[12.5%] h-0.5 z-0"
+              style={{ background: 'linear-gradient(to right, var(--site-primary), var(--site-primary))' }}
+            />
+
+            {[
+              { icon: <Search size={22} />, color: 'from-red-500 to-red-700' },
+              { icon: <CheckCircle size={22} />, color: 'from-red-600 to-red-800' },
+              { icon: <TrendingUp size={22} />, color: 'from-red-700 to-red-900' },
+              { icon: <Send size={22} />, color: 'from-red-800 to-red-950' },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ delay: i * 0.15, duration: 0.5 }}
+                className="relative z-10 flex flex-col items-center text-center px-4 group"
+              >
+                {/* Icon circle with number badge */}
+                <div className="relative mb-5">
+                  <div
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:-translate-y-1 group-hover:shadow-xl"
+                    style={{ backgroundColor: 'var(--site-primary)' }}
+                  >
+                    {item.icon}
+                  </div>
+                  <span
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full text-white text-xs font-extrabold flex items-center justify-center border-2 border-white shadow"
+                    style={{ backgroundColor: 'var(--site-primary-dark, #962d22)' }}
+                  >
+                    {i + 1}
+                  </span>
                 </div>
-                <h4 className="font-semibold text-gray-800 mb-1">{step}</h4>
-              </div>
+
+                {/* Card */}
+                <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 w-full group-hover:shadow-md transition-shadow">
+                  <h4
+                    className="font-bold text-base mb-2"
+                    style={{ color: 'var(--site-heading-color)' }}
+                  >
+                    {processSteps[i]}
+                  </h4>
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    {[
+                      'Community members, schools & hospitals refer those in need',
+                      'Our team verifies cases via phone and direct field visits',
+                      'We raise funds through donors, members & corporate partners',
+                      'Funds disbursed directly with ongoing impact monitoring',
+                    ][i]}
+                  </p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>

@@ -38,13 +38,13 @@ export default function TestimonialsSection() {
   const item = items[current]
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-10 bg-gray-50">
       <div className="max-w-7xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-14"
+          className="text-center mb-8"
         >
           <span
             className="inline-block px-3 py-1 text-xs font-semibold tracking-widest uppercase rounded-full mb-4 text-white"
