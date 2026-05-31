@@ -4,6 +4,7 @@ import { SettingsProvider } from './contexts/SettingsContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Layout from './components/layout/Layout'
 import AdminLayout from './components/admin/AdminLayout'
+import ScrollToTop from './components/ScrollToTop'
 
 // Public pages
 import Home from './pages/Home'
@@ -55,6 +56,7 @@ export default function App() {
     <AuthProvider>
       <SettingsProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Toaster
             position="top-right"
             toastOptions={{
