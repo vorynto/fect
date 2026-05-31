@@ -15,7 +15,24 @@ export default function AdminGallery() {
   const [editingAlbum, setEditingAlbum] = useState<GalleryAlbum | null>(null)
   const [albumForm, setAlbumForm] = useState({ title: '', description: '', cover_image_url: '' })
   const [uploading, setUploading] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [coverMode, setCoverMode] = useState<'upload' | 'url'>('upload')
   const [saving, setSaving] = useState(false)
+
+  const uploadCover = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingCover(true)
+    const ext = file.name.split('.').pop()
+    const path = `gallery/covers/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    const { error } = await supabase.storage.from('fect-uploads').upload(path, file, { upsert: true })
+    if (error) { toast.error('Upload failed: ' + error.message); setUploadingCover(false); return }
+    const { data: { publicUrl } } = supabase.storage.from('fect-uploads').getPublicUrl(path)
+    setAlbumForm(f => ({ ...f, cover_image_url: publicUrl }))
+    setUploadingCover(false)
+    toast.success('Cover image uploaded!')
+    e.target.value = ''
+  }
 
   const fetchAlbums = async () => {
     const { data } = await supabase.from('gallery_albums').select('*').order('created_at', { ascending: false })
@@ -260,15 +277,62 @@ export default function AdminGallery() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cover Image URL</label>
-                <input
-                  value={albumForm.cover_image_url}
-                  onChange={e => setAlbumForm(f => ({ ...f, cover_image_url: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-800"
-                />
-                {albumForm.cover_image_url && (
-                  <img src={albumForm.cover_image_url} alt="" className="mt-2 w-full h-32 object-cover rounded-lg" />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">Cover Image</label>
+                  <div className="flex rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
+                    <button
+                      type="button"
+                      onClick={() => setCoverMode('upload')}
+                      className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${coverMode === 'upload' ? 'text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+                      style={coverMode === 'upload' ? { backgroundColor: 'var(--site-primary)' } : {}}
+                    >
+                      <Upload size={12} /> Upload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCoverMode('url')}
+                      className={`flex items-center gap-1 px-3 py-1.5 transition-colors ${coverMode === 'url' ? 'text-white' : 'text-gray-500 hover:bg-gray-50'}`}
+                      style={coverMode === 'url' ? { backgroundColor: 'var(--site-primary)' } : {}}
+                    >
+                      <Image size={12} /> URL
+                    </button>
+                  </div>
+                </div>
+
+                {coverMode === 'upload' ? (
+                  <label className={`flex flex-col items-center justify-center gap-2 w-full h-32 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${uploadingCover ? 'opacity-60 cursor-not-allowed' : 'hover:border-[var(--site-primary)] hover:bg-red-50'} ${albumForm.cover_image_url ? 'border-green-400 bg-green-50' : 'border-gray-300 bg-gray-50'}`}>
+                    {uploadingCover ? (
+                      <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-[var(--site-primary)] animate-spin" />
+                        Uploading…
+                      </div>
+                    ) : albumForm.cover_image_url ? (
+                      <div className="relative w-full h-full">
+                        <img src={albumForm.cover_image_url} alt="Cover" className="w-full h-full object-cover rounded-xl" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl opacity-0 hover:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-semibold">Click to replace</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload size={22} className="text-gray-400" />
+                        <span className="text-sm text-gray-500">Click to upload cover image</span>
+                        <span className="text-xs text-gray-400">JPG, PNG, WebP — max 10MB</span>
+                      </>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={uploadCover} disabled={uploadingCover} />
+                  </label>
+                ) : (
+                  <input
+                    value={albumForm.cover_image_url}
+                    onChange={e => setAlbumForm(f => ({ ...f, cover_image_url: e.target.value }))}
+                    placeholder="https://..."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-800"
+                  />
+                )}
+
+                {coverMode === 'url' && albumForm.cover_image_url && (
+                  <img src={albumForm.cover_image_url} alt="" className="mt-2 w-full h-32 object-cover rounded-lg" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
                 )}
               </div>
             </div>
