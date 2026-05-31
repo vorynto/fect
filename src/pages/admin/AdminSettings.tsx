@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSettings } from '../../contexts/SettingsContext'
-import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type } from 'lucide-react'
+import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { SiteSettings } from '../../types'
 
@@ -11,11 +11,13 @@ const GOOGLE_FONTS = [
 ]
 
 const TABS = [
-  { key: 'branding',  label: 'Branding',     icon: <Layout size={15} /> },
+  { key: 'branding',  label: 'Branding',      icon: <Layout size={15} /> },
   { key: 'colors',    label: 'Colors & Font', icon: <Palette size={15} /> },
   { key: 'topbar',    label: 'Top Bar',       icon: <AlignLeft size={15} /> },
   { key: 'contact',   label: 'Contact',       icon: <Phone size={15} /> },
+  { key: 'office',    label: 'Contact Details', icon: <Building2 size={15} /> },
   { key: 'social',    label: 'Social Media',  icon: <Share2 size={15} /> },
+  { key: 'mailpay',   label: 'Mail & Payments', icon: <MailCheck size={15} /> },
   { key: 'header',    label: 'Header / Nav',  icon: <Type size={15} /> },
   { key: 'footer',    label: 'Footer',        icon: <Globe size={15} /> },
 ]
@@ -221,6 +223,75 @@ export default function AdminSettings() {
             <Input label="Facebook URL" field="facebook_url" placeholder="https://facebook.com/fect" />
             <Input label="YouTube URL" field="youtube_url" placeholder="https://youtube.com/@fect" />
             <Input label="Instagram URL" field="instagram_url" placeholder="https://instagram.com/fect.friends2care" />
+          </div>
+        )
+
+      case 'office':
+        return (
+          <div className="space-y-6">
+            {/* Registered Office */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
+              <h3 className="font-bold text-gray-900">Registered Office</h3>
+              <p className="text-sm text-gray-500">Shown on the Contact page. Each line wraps as a separate address line.</p>
+              <Textarea label="Office Address" field="office_address" rows={4} placeholder={'No.11A Ganeshan Street, 1st Floor\nEsa Pallavaram\nChennai 600 043\nTamil Nadu, India'} />
+              <Input label="Office Emails (separate with | )" field="office_emails" placeholder="contactus@fect.in | admin@fect.in" />
+            </div>
+
+            {/* Contact Person */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
+              <h3 className="font-bold text-gray-900">Contact Person</h3>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Input label="Name" field="contact_person_name" placeholder="Dinesh Babu C" />
+                <Input label="Role / Designation" field="contact_person_role" placeholder="Founder | President" />
+              </div>
+              <Input label="Email(s) (separate with | )" field="contact_person_email" placeholder="dinesh@fect.in" />
+              <Input label="Phone(s) (separate with | )" field="contact_person_phone" placeholder="+91-99529 71384 | +91-7904357453" />
+              <Input label="Landline" field="contact_person_landline" placeholder="+91-44-42847087" />
+            </div>
+          </div>
+        )
+
+      case 'mailpay':
+        return (
+          <div className="space-y-6">
+            {/* Mail notifications */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
+              <div className="flex items-center gap-2">
+                <MailCheck size={18} style={{ color: 'var(--site-primary)' }} />
+                <h3 className="font-bold text-gray-900">Email Notifications</h3>
+              </div>
+              <p className="text-sm text-gray-500">
+                Receive an email alert when a contact form is submitted or a donation is made.
+              </p>
+              <Input label="Notification Recipient Email" field="notification_email" type="email" placeholder="admin@fect.in" />
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!form.notify_on_contact} onChange={e => set('notify_on_contact', e.target.checked)} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium text-gray-700">Notify me on new contact form submissions</span>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={!!form.notify_on_donation} onChange={e => set('notify_on_donation', e.target.checked)} className="w-4 h-4 rounded" />
+                  <span className="text-sm font-medium text-gray-700">Notify me on new donations</span>
+                </label>
+              </div>
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
+                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the included <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret. See <code className="bg-amber-100 px-1 rounded">EMAIL_SETUP.md</code>. The recipient address above is read by that function.
+              </div>
+            </div>
+
+            {/* Razorpay */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
+              <div className="flex items-center gap-2">
+                <CreditCard size={18} style={{ color: 'var(--site-primary)' }} />
+                <h3 className="font-bold text-gray-900">Razorpay Payment Gateway</h3>
+              </div>
+              <Input label="Razorpay Key ID (Live or Test)" field="razorpay_key_id" placeholder="rzp_live_xxxxxxxxxxxxx" />
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
+                <strong>Where to find it:</strong> Razorpay Dashboard → Settings → API Keys. Paste your <strong>Key ID</strong> here (starts with <code className="bg-blue-100 px-1 rounded">rzp_live_</code> for production).
+                <br /><br />
+                <strong>Security note:</strong> Only the <strong>Key ID</strong> goes here — it is safe to expose publicly. <strong>Never</strong> paste the Key <em>Secret</em>; it must stay private and is not needed for this checkout flow.
+              </div>
+            </div>
           </div>
         )
 

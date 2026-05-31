@@ -26,6 +26,21 @@ export interface SiteSettings {
   // Header donate button
   donate_button_text: string
   donate_button_link: string
+  // Registered office
+  office_address: string
+  office_emails: string
+  // Contact person
+  contact_person_name: string
+  contact_person_role: string
+  contact_person_email: string
+  contact_person_phone: string
+  contact_person_landline: string
+  // Mail notifications
+  notification_email: string
+  notify_on_contact: boolean
+  notify_on_donation: boolean
+  // Razorpay live key (public-safe key id only)
+  razorpay_key_id: string
   updated_at: string
 }
 

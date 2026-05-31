@@ -1,10 +1,13 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, CheckCircle, User, Building2, Printer } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useSettings } from '../contexts/SettingsContext'
 import { usePageContent } from '../hooks/usePageContent'
 import toast from 'react-hot-toast'
+
+// Split a "a@x.com | b@y.com" string into trimmed parts
+const splitPipe = (s: string) => (s || '').split('|').map(p => p.trim()).filter(Boolean)
 
 export default function Contact() {
   const { settings } = useSettings()
@@ -15,14 +18,10 @@ export default function Contact() {
 
   const heroTitle   = getTitle('hero', 'Contact Us')
   const heroDesc    = get('hero', 'We\'d love to hear from you — whether you want to volunteer, donate, or refer someone in need.')
-  const memberTitle = getTitle('member_title', 'Become a Member')
-  const memberDesc  = get('member_content', 'Join our community of changemakers. FECT has over 40 active members — engineers, professionals, and passionate individuals committed to social impact.')
 
-  const contactItems = [
-    { icon: <MapPin size={20} />, label: 'Address', value: settings.address || 'Chennai, Tamil Nadu, India', href: '' },
-    { icon: <Mail size={20} />,   label: 'Email',   value: settings.email   || 'info@fect.in',              href: `mailto:${settings.email}` },
-    { icon: <Phone size={20} />,  label: 'Phone',   value: settings.phone   || '+91 98765 43210',           href: `tel:${(settings.phone || '').replace(/\s/g, '')}` },
-  ]
+  const officeEmails = splitPipe(settings.office_emails)
+  const personEmails = splitPipe(settings.contact_person_email)
+  const personPhones = splitPipe(settings.contact_person_phone)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,38 +47,98 @@ export default function Contact() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-5 gap-14">
-            <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="lg:col-span-2">
-              <h2 className="text-3xl font-extrabold mb-6" style={{ color: 'var(--site-heading-color)' }}>Get In Touch</h2>
-              <p className="text-gray-600 leading-relaxed mb-8">
-                {get('info', 'Whether you want to refer a student, support our cause, or simply learn more about FECT, we are here to connect.')}
-              </p>
-              <div className="space-y-5">
-                {contactItems.map(item => (
-                  <div key={item.label} className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: 'var(--site-primary)' }}>
-                      {item.icon}
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">{item.label}</p>
-                      {item.href
-                        ? <a href={item.href} className="text-gray-800 font-semibold hover:underline">{item.value}</a>
-                        : <p className="text-gray-800 font-semibold">{item.value}</p>
-                      }
-                    </div>
-                  </div>
-                ))}
+            <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="lg:col-span-2 space-y-6">
+              <div>
+                <h2 className="text-3xl font-extrabold mb-3" style={{ color: 'var(--site-heading-color)' }}>Get In Touch</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  {get('info', 'Whether you want to refer a student, support our cause, or simply learn more about FECT, we are here to connect.')}
+                </p>
               </div>
+
+              {/* Registered Office */}
+              <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: 'var(--site-primary)' }}>
+                    <Building2 size={20} />
+                  </div>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--site-heading-color)' }}>Registered Office</h3>
+                </div>
+                <div className="flex items-start gap-3 mb-3">
+                  <MapPin size={16} className="mt-1 shrink-0 text-gray-400" />
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-line">{settings.office_address}</p>
+                </div>
+                {officeEmails.length > 0 && (
+                  <div className="flex items-start gap-3">
+                    <Mail size={16} className="mt-1 shrink-0 text-gray-400" />
+                    <p className="text-sm">
+                      {officeEmails.map((em, i) => (
+                        <span key={em}>
+                          <a href={`mailto:${em}`} className="font-medium hover:underline" style={{ color: 'var(--site-primary)' }}>{em}</a>
+                          {i < officeEmails.length - 1 && <span className="text-gray-300 mx-1.5">|</span>}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Person */}
+              <div className="p-6 rounded-2xl bg-gray-50 border border-gray-100">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: 'var(--site-primary)' }}>
+                    <User size={20} />
+                  </div>
+                  <h3 className="text-lg font-bold" style={{ color: 'var(--site-heading-color)' }}>Contact Person</h3>
+                </div>
+                <p className="font-bold text-gray-900 text-lg">{settings.contact_person_name}</p>
+                <p className="text-sm font-medium mb-4" style={{ color: 'var(--site-primary)' }}>{settings.contact_person_role}</p>
+
+                <div className="space-y-2.5">
+                  {personEmails.length > 0 && (
+                    <div className="flex items-start gap-3">
+                      <Mail size={16} className="mt-0.5 shrink-0 text-gray-400" />
+                      <p className="text-sm">
+                        {personEmails.map((em, i) => (
+                          <span key={em}>
+                            <a href={`mailto:${em}`} className="font-medium hover:underline" style={{ color: 'var(--site-primary)' }}>{em}</a>
+                            {i < personEmails.length - 1 && <span className="text-gray-300 mx-1.5">|</span>}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                  )}
+                  {personPhones.length > 0 && (
+                    <div className="flex items-start gap-3">
+                      <Phone size={16} className="mt-0.5 shrink-0 text-gray-400" />
+                      <p className="text-sm text-gray-700">
+                        {personPhones.map((ph, i) => (
+                          <span key={ph}>
+                            <a href={`tel:${ph.replace(/[^0-9+]/g, '')}`} className="font-medium hover:underline">{ph}</a>
+                            {i < personPhones.length - 1 && <span className="text-gray-300 mx-1.5">|</span>}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                  )}
+                  {settings.contact_person_landline && (
+                    <div className="flex items-start gap-3">
+                      <Printer size={16} className="mt-0.5 shrink-0 text-gray-400" />
+                      <p className="text-sm text-gray-700">
+                        <span className="text-gray-400">Landline: </span>
+                        <a href={`tel:${settings.contact_person_landline.replace(/[^0-9+]/g, '')}`} className="font-medium hover:underline">{settings.contact_person_landline}</a>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {settings.whatsapp && (
                 <a href={`https://wa.me/${settings.whatsapp.replace(/\D/g,'')}`} target="_blank" rel="noreferrer"
-                  className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
                   style={{ backgroundColor: '#25D366' }}>
                   WhatsApp Us
                 </a>
               )}
-              <div className="mt-8 p-6 rounded-2xl bg-gray-50 border border-gray-100">
-                <h4 className="font-bold mb-2" style={{ color: 'var(--site-heading-color)' }}>{memberTitle}</h4>
-                <p className="text-gray-500 text-sm leading-relaxed">{memberDesc}</p>
-              </div>
             </motion.div>
 
             <motion.div initial={{ opacity: 0, x: 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="lg:col-span-3">

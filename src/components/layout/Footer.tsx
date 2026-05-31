@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Mail, Phone, MapPin, Heart, ExternalLink } from 'lucide-react'
+import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react'
 import { useSettings } from '../../contexts/SettingsContext'
 import { supabase } from '../../lib/supabase'
 import type { NavItem, Program } from '../../types'
@@ -45,11 +45,15 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               {settings.logo_url ? (
-                <img src={settings.logo_url} alt={settings.site_name} className="h-10 w-auto brightness-0 invert" />
+                <span className="inline-flex items-center bg-white rounded-lg px-2 py-1.5">
+                  <img src={settings.logo_url} alt={settings.site_name} className="h-9 w-auto object-contain" />
+                </span>
               ) : (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: 'var(--site-primary)' }}>F</div>
+                <>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: 'var(--site-primary)' }}>F</div>
+                  <span className="text-white font-bold text-lg">FECT</span>
+                </>
               )}
-              <span className="text-white font-bold text-lg">FECT</span>
             </div>
             <p className="text-sm leading-relaxed mb-4">{footerDesc}</p>
             <div className="flex gap-3">
@@ -136,8 +140,17 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>{copyright}</p>
-          <p className="flex items-center gap-1">
-            Made with <Heart size={12} className="text-(--site-primary)" /> for a better Tamil Nadu
+          <p>
+            Developed By{' '}
+            <a
+              href="https://voryntotechnologies.com"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold hover:underline"
+              style={{ color: 'var(--site-primary)' }}
+            >
+              Vorynto Technologies
+            </a>
           </p>
         </div>
       </div>

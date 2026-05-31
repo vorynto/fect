@@ -26,6 +26,17 @@ const defaultSettings: SiteSettings = {
   footer_copyright: '',
   donate_button_text: 'Donate Now',
   donate_button_link: '/donate',
+  office_address: 'No.11A Ganeshan Street, 1st Floor\nEsa Pallavaram\nChennai 600 043\nTamil Nadu, India',
+  office_emails: 'contactus@fect.in | admin@fect.in',
+  contact_person_name: 'Dinesh Babu C',
+  contact_person_role: 'Founder | President',
+  contact_person_email: 'dinesh@fect.in',
+  contact_person_phone: '+91-99529 71384 | +91-7904357453',
+  contact_person_landline: '+91-44-42847087',
+  notification_email: 'admin@fect.in',
+  notify_on_contact: true,
+  notify_on_donation: true,
+  razorpay_key_id: '',
   updated_at: '',
 }
 

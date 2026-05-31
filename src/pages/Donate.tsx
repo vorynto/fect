@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Heart, Shield, CheckCircle, IndianRupee } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { usePageContent } from '../hooks/usePageContent'
+import { useSettings } from '../contexts/SettingsContext'
 import toast from 'react-hot-toast'
 
 declare global {
@@ -32,7 +33,7 @@ interface RazorpayResponse {
 
 const PRESET_AMOUNTS = [500, 1000, 2000, 5000, 10000]
 
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_your_key'
+const ENV_RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID || ''
 
 const DEFAULT_TIERS = [
   { amount: '₹500/month', name: 'Educate a Child',    desc: 'Covers school fees, books, and uniform for one child throughout the academic year.' },
@@ -50,6 +51,9 @@ export default function Donate() {
   const [success, setSuccess] = useState(false)
   const [paymentId, setPaymentId] = useState('')
   const { getTitle, get } = usePageContent('donate')
+  const { settings } = useSettings()
+  // Prefer the admin-configured key; fall back to the build-time env var
+  const razorpayKey = settings.razorpay_key_id?.trim() || ENV_RAZORPAY_KEY
 
   const finalAmount = isCustom ? parseInt(customAmount) || 0 : amount
 
@@ -74,6 +78,10 @@ export default function Donate() {
       toast.error('Minimum donation amount is ₹100')
       return
     }
+    if (!razorpayKey) {
+      toast.error('Payment gateway is not configured yet. Please contact us to donate.')
+      return
+    }
 
     setProcessing(true)
     const loaded = await loadRazorpay()
@@ -84,7 +92,7 @@ export default function Donate() {
     }
 
     const options: RazorpayOptions = {
-      key: RAZORPAY_KEY,
+      key: razorpayKey,
       amount: finalAmount * 100,
       currency: 'INR',
       name: 'FECT - Friends Educational & Charitable Trust',
