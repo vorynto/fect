@@ -9,7 +9,14 @@ import ScrollToTop from './components/ScrollToTop'
 // Public pages
 import Home from './pages/Home'
 import OurStory from './pages/OurStory'
-import Services from './pages/Services'
+import OurMission from './pages/OurMission'
+import OurWorkProcess from './pages/OurWorkProcess'
+import WhoWeAre from './pages/WhoWeAre'
+import WhatYouCanDo from './pages/WhatYouCanDo'
+import ReferStudent from './pages/ReferStudent'
+import ReferHome from './pages/ReferHome'
+import BecomeAMember from './pages/BecomeAMember'
+import SpreadTheWord from './pages/SpreadTheWord'
 import Gallery from './pages/Gallery'
 import GalleryAlbum from './pages/GalleryAlbum'
 import Testimonials from './pages/Testimonials'
@@ -68,7 +75,14 @@ export default function App() {
             {/* Public Routes */}
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/our-story" element={<Layout><OurStory /></Layout>} />
-            <Route path="/services" element={<Layout><Services /></Layout>} />
+            <Route path="/our-mission" element={<Layout><OurMission /></Layout>} />
+            <Route path="/our-work-process" element={<Layout><OurWorkProcess /></Layout>} />
+            <Route path="/who-we-are" element={<Layout><WhoWeAre /></Layout>} />
+            <Route path="/what-you-can-do" element={<Layout><WhatYouCanDo /></Layout>} />
+            <Route path="/refer-a-student" element={<Layout><ReferStudent /></Layout>} />
+            <Route path="/refer-a-home" element={<Layout><ReferHome /></Layout>} />
+            <Route path="/become-a-member" element={<Layout><BecomeAMember /></Layout>} />
+            <Route path="/spread-the-word" element={<Layout><SpreadTheWord /></Layout>} />
             <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
             <Route path="/gallery/:id" element={<Layout><GalleryAlbum /></Layout>} />
             <Route path="/testimonials" element={<Layout><Testimonials /></Layout>} />

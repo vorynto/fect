@@ -6,12 +6,20 @@ import { supabase } from '../../lib/supabase'
 import type { NavItem } from '../../types'
 
 const FALLBACK_NAV: NavItem[] = [
-  { id: '1', label: 'Home',         path: '/',             parent_id: null, sort_order: 1, is_active: true, is_button: false, open_in_new: false },
-  { id: '2', label: 'About Us',     path: '/our-story',    parent_id: null, sort_order: 2, is_active: true, is_button: false, open_in_new: false },
-  { id: '3', label: 'Our Services', path: '/services',     parent_id: null, sort_order: 3, is_active: true, is_button: false, open_in_new: false },
-  { id: '4', label: 'Gallery',      path: '/gallery',      parent_id: null, sort_order: 4, is_active: true, is_button: false, open_in_new: false },
-  { id: '5', label: 'Testimonials', path: '/testimonials', parent_id: null, sort_order: 5, is_active: true, is_button: false, open_in_new: false },
-  { id: '6', label: 'Contact',      path: '/contact',      parent_id: null, sort_order: 6, is_active: true, is_button: false, open_in_new: false },
+  { id: '1',  label: 'Home',             path: '/',                   parent_id: null, sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2',  label: 'Our Story',        path: '/our-story',          parent_id: null, sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2a', label: 'Our Mission',      path: '/our-mission',        parent_id: '2',  sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2b', label: 'Our Work Process', path: '/our-work-process',   parent_id: '2',  sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2c', label: 'Who We Are',       path: '/who-we-are',         parent_id: '2',  sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3',  label: 'What You Can Do',  path: '/what-you-can-do',    parent_id: null, sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3a', label: 'Refer a Student',  path: '/refer-a-student',    parent_id: '3',  sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3b', label: 'Refer a Home',     path: '/refer-a-home',       parent_id: '3',  sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3c', label: 'Donate',           path: '/donate',             parent_id: '3',  sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3d', label: 'Become a Member',  path: '/become-a-member',    parent_id: '3',  sort_order: 4,  is_active: true, is_button: false, open_in_new: false },
+  { id: '3e', label: 'Spread the Word',  path: '/spread-the-word',    parent_id: '3',  sort_order: 5,  is_active: true, is_button: false, open_in_new: false },
+  { id: '4',  label: 'Gallery',          path: '/gallery',            parent_id: null, sort_order: 4,  is_active: true, is_button: false, open_in_new: false },
+  { id: '5',  label: 'Testimonials',     path: '/testimonials',       parent_id: null, sort_order: 5,  is_active: true, is_button: false, open_in_new: false },
+  { id: '6',  label: 'Contact',          path: '/contact',            parent_id: null, sort_order: 6,  is_active: true, is_button: false, open_in_new: false },
 ]
 
 function buildTree(flat: NavItem[]): NavItem[] {
