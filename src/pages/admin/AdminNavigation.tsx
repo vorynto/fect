@@ -20,8 +20,9 @@ const DEFAULT_PARENTS = [
 
 const DEFAULT_CHILDREN: { label: string; path: string; parent_label: string; sort_order: number }[] = [
   { label: 'Our Mission',      path: '/our-mission',      parent_label: 'Our Story',       sort_order: 1 },
-  { label: 'Our Work Process', path: '/our-work-process', parent_label: 'Our Story',       sort_order: 2 },
-  { label: 'Who We Are',       path: '/who-we-are',       parent_label: 'Our Story',       sort_order: 3 },
+  { label: 'Our Services',     path: '/our-services',     parent_label: 'Our Story',       sort_order: 2 },
+  { label: 'Our Work Process', path: '/our-work-process', parent_label: 'Our Story',       sort_order: 3 },
+  { label: 'Who We Are',       path: '/who-we-are',       parent_label: 'Our Story',       sort_order: 4 },
   { label: 'Refer a Student',  path: '/refer-a-student',  parent_label: 'What You Can Do', sort_order: 1 },
   { label: 'Refer a Home',     path: '/refer-a-home',     parent_label: 'What You Can Do', sort_order: 2 },
   { label: 'Donate',           path: '/donate',           parent_label: 'What You Can Do', sort_order: 3 },

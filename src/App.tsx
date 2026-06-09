@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop'
 // Public pages
 import Home from './pages/Home'
 import OurStory from './pages/OurStory'
+import OurServices from './pages/OurServices'
 import OurMission from './pages/OurMission'
 import OurWorkProcess from './pages/OurWorkProcess'
 import WhoWeAre from './pages/WhoWeAre'
@@ -75,6 +76,7 @@ export default function App() {
             {/* Public Routes */}
             <Route path="/" element={<Layout><Home /></Layout>} />
             <Route path="/our-story" element={<Layout><OurStory /></Layout>} />
+            <Route path="/our-services" element={<Layout><OurServices /></Layout>} />
             <Route path="/our-mission" element={<Layout><OurMission /></Layout>} />
             <Route path="/our-work-process" element={<Layout><OurWorkProcess /></Layout>} />
             <Route path="/who-we-are" element={<Layout><WhoWeAre /></Layout>} />

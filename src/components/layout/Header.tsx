@@ -9,8 +9,9 @@ const FALLBACK_NAV: NavItem[] = [
   { id: '1',  label: 'Home',             path: '/',                   parent_id: null, sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
   { id: '2',  label: 'Our Story',        path: '/our-story',          parent_id: null, sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
   { id: '2a', label: 'Our Mission',      path: '/our-mission',        parent_id: '2',  sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
-  { id: '2b', label: 'Our Work Process', path: '/our-work-process',   parent_id: '2',  sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
-  { id: '2c', label: 'Who We Are',       path: '/who-we-are',         parent_id: '2',  sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2b', label: 'Our Services',     path: '/our-services',       parent_id: '2',  sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2c', label: 'Our Work Process', path: '/our-work-process',   parent_id: '2',  sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
+  { id: '2d', label: 'Who We Are',       path: '/who-we-are',         parent_id: '2',  sort_order: 4,  is_active: true, is_button: false, open_in_new: false },
   { id: '3',  label: 'What You Can Do',  path: '/what-you-can-do',    parent_id: null, sort_order: 3,  is_active: true, is_button: false, open_in_new: false },
   { id: '3a', label: 'Refer a Student',  path: '/refer-a-student',    parent_id: '3',  sort_order: 1,  is_active: true, is_button: false, open_in_new: false },
   { id: '3b', label: 'Refer a Home',     path: '/refer-a-home',       parent_id: '3',  sort_order: 2,  is_active: true, is_button: false, open_in_new: false },
@@ -56,7 +57,7 @@ export default function Header() {
           // If the DB still has the old nav (About us / Our Services),
           // fall back to the hardcoded nav so new pages appear immediately.
           const hasNewNav = data.some(
-            item => item.path === '/what-you-can-do' || item.path === '/our-mission'
+            item => item.path === '/what-you-can-do' || item.path === '/our-mission' || item.path === '/our-services'
           )
           if (hasNewNav) setNavItems(buildTree(data))
           // else: keep FALLBACK_NAV (admin should click "Reset to Default" in nav admin)
