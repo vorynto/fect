@@ -37,6 +37,10 @@ const defaultSettings: SiteSettings = {
   notify_on_contact: true,
   notify_on_donation: true,
   razorpay_key_id: '',
+  payment_gateway: 'razorpay',
+  billdesk_merchant_id: '',
+  billdesk_env: 'production',
+  donation_qr_url: '',
   updated_at: '',
 }
 

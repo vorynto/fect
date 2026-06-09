@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSettings } from '../../contexts/SettingsContext'
-import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard } from 'lucide-react'
+import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard, QrCode, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { SiteSettings } from '../../types'
 
@@ -26,8 +26,9 @@ export default function AdminSettings() {
   const { settings, refreshSettings } = useSettings()
   const [form, setForm] = useState<Partial<SiteSettings>>({})
   const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState<'logo' | 'favicon' | null>(null)
+  const [uploading, setUploading] = useState<'logo' | 'favicon' | 'qr' | null>(null)
   const [activeTab, setActiveTab] = useState('branding')
+  const qrInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setForm(settings) }, [settings])
 
@@ -251,18 +252,63 @@ export default function AdminSettings() {
           </div>
         )
 
-      case 'mailpay':
+      case 'mailpay': {
+        const gw = (form.payment_gateway || 'razorpay') as 'razorpay' | 'billdesk' | 'qr' | 'none'
+
+        const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0]
+          if (!file) return
+          setUploading('qr')
+          const path = `qr-${Date.now()}.${file.name.split('.').pop()}`
+          const { error } = await supabase.storage.from('fect-uploads').upload(path, file, { upsert: true })
+          if (error) { toast.error('Upload failed: ' + error.message); setUploading(null); return }
+          const { data: { publicUrl } } = supabase.storage.from('fect-uploads').getPublicUrl(path)
+          set('donation_qr_url', publicUrl)
+          setUploading(null)
+          toast.success('QR code uploaded!')
+          e.target.value = ''
+        }
+
+        const GW_OPTIONS = [
+          {
+            key: 'razorpay',
+            label: 'Razorpay',
+            icon: <CreditCard size={20} />,
+            desc: 'Cards, UPI, Net Banking, Wallets via Razorpay checkout',
+            color: '#3395ff',
+          },
+          {
+            key: 'billdesk',
+            label: 'BillDesk',
+            icon: <CreditCard size={20} />,
+            desc: 'Cards, UPI, Net Banking via BillDesk SmartGateway',
+            color: '#e65c00',
+          },
+          {
+            key: 'qr',
+            label: 'QR Code',
+            icon: <QrCode size={20} />,
+            desc: 'Donors scan your UPI/bank QR and enter their UTR reference',
+            color: '#27ae60',
+          },
+          {
+            key: 'none',
+            label: 'Disabled',
+            icon: <X size={20} />,
+            desc: 'Hide the pay button — donors are shown contact info instead',
+            color: '#7f8c8d',
+          },
+        ] as const
+
         return (
           <div className="space-y-6">
-            {/* Mail notifications */}
+            {/* Email notifications */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
               <div className="flex items-center gap-2">
                 <MailCheck size={18} style={{ color: 'var(--site-primary)' }} />
                 <h3 className="font-bold text-gray-900">Email Notifications</h3>
               </div>
-              <p className="text-sm text-gray-500">
-                Receive an email alert when a contact form is submitted or a donation is made.
-              </p>
+              <p className="text-sm text-gray-500">Receive an email alert when a contact form is submitted or a donation is made.</p>
               <Input label="Notification Recipient Email" field="notification_email" type="email" placeholder="admin@fect.in" />
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -275,25 +321,126 @@ export default function AdminSettings() {
                 </label>
               </div>
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
-                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the included <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret. See <code className="bg-amber-100 px-1 rounded">EMAIL_SETUP.md</code>. The recipient address above is read by that function.
+                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the included <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret. The recipient address above is read by that function.
               </div>
             </div>
 
-            {/* Razorpay */}
+            {/* Payment gateway selection */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
               <div className="flex items-center gap-2">
                 <CreditCard size={18} style={{ color: 'var(--site-primary)' }} />
-                <h3 className="font-bold text-gray-900">Razorpay Payment Gateway</h3>
+                <h3 className="font-bold text-gray-900">Donation Payment Gateway</h3>
               </div>
-              <Input label="Razorpay Key ID (Live or Test)" field="razorpay_key_id" placeholder="rzp_live_xxxxxxxxxxxxx" />
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
-                <strong>Where to find it:</strong> Razorpay Dashboard → Settings → API Keys. Paste your <strong>Key ID</strong> here (starts with <code className="bg-blue-100 px-1 rounded">rzp_live_</code> for production).
-                <br /><br />
-                <strong>Security note:</strong> Only the <strong>Key ID</strong> goes here — it is safe to expose publicly. <strong>Never</strong> paste the Key <em>Secret</em>; it must stay private and is not needed for this checkout flow.
+              <p className="text-sm text-gray-500">Choose which payment method is active on the Donate page. Only one can be enabled at a time.</p>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {GW_OPTIONS.map(opt => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => set('payment_gateway', opt.key)}
+                    className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all ${
+                      gw === opt.key ? 'border-transparent shadow-md' : 'border-gray-100 hover:border-gray-300'
+                    }`}
+                    style={gw === opt.key ? { borderColor: opt.color, backgroundColor: opt.color + '12' } : {}}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 mt-0.5"
+                      style={{ backgroundColor: opt.color }}
+                    >
+                      {opt.icon}
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                        {opt.label}
+                        {gw === opt.key && (
+                          <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: opt.color }}>Active</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{opt.desc}</p>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Razorpay config */}
+            {gw === 'razorpay' && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                <h4 className="font-bold text-gray-900 text-sm">Razorpay Configuration</h4>
+                <Input label="Razorpay Key ID (Live or Test)" field="razorpay_key_id" placeholder="rzp_live_xxxxxxxxxxxxx" />
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
+                  <strong>Where to find it:</strong> Razorpay Dashboard → Settings → API Keys. Paste your <strong>Key ID</strong> here (starts with <code className="bg-blue-100 px-1 rounded">rzp_live_</code> for production).
+                  <br /><br />
+                  <strong>Security:</strong> Only the Key ID goes here — it is safe to expose publicly. Never paste the Key Secret.
+                </div>
+              </div>
+            )}
+
+            {/* BillDesk config */}
+            {gw === 'billdesk' && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                <h4 className="font-bold text-gray-900 text-sm">BillDesk Configuration</h4>
+                <Input label="Merchant ID" field="billdesk_merchant_id" placeholder="FECTXXXX" />
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Environment</label>
+                  <div className="flex gap-3">
+                    {(['production', 'uat'] as const).map(env => (
+                      <button
+                        key={env}
+                        type="button"
+                        onClick={() => set('billdesk_env', env)}
+                        className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                          (form.billdesk_env || 'production') === env
+                            ? 'text-white border-transparent'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                        }`}
+                        style={(form.billdesk_env || 'production') === env ? { backgroundColor: '#e65c00' } : {}}
+                      >
+                        {env === 'production' ? 'Production (Live)' : 'UAT (Testing)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 leading-relaxed">
+                  <strong>Requires a Supabase Edge Function:</strong> BillDesk order creation needs server-side JWT signing using your BillDesk secret key. Deploy the <code className="bg-orange-100 px-1 rounded">supabase/functions/billdesk-create-order</code> Edge Function and set <code className="bg-orange-100 px-1 rounded">BILLDESK_SECRET</code> + <code className="bg-orange-100 px-1 rounded">BILLDESK_CLIENT_ID</code> as Supabase secrets. Contact your BillDesk account manager for credentials.
+                </div>
+              </div>
+            )}
+
+            {/* QR code config */}
+            {gw === 'qr' && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                <h4 className="font-bold text-gray-900 text-sm">QR Code Configuration</h4>
+                <p className="text-sm text-gray-500">Upload your UPI / bank QR code. Donors will scan it and enter their UTR reference number to confirm payment.</p>
+                {form.donation_qr_url && (
+                  <div className="flex items-start gap-4">
+                    <img src={form.donation_qr_url as string} alt="Donation QR" className="w-40 h-40 object-contain border rounded-xl bg-gray-50 p-2" />
+                    <div className="text-sm text-green-600 font-medium pt-2">QR code uploaded and active</div>
+                  </div>
+                )}
+                <div>
+                  <input type="text" value={(form.donation_qr_url as string) ?? ''} onChange={e => set('donation_qr_url', e.target.value)} placeholder="Paste image URL or upload below" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none text-sm text-gray-700 mb-2" />
+                  <label className={`flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-green-400 text-sm text-gray-500 transition-colors ${uploading === 'qr' ? 'opacity-60' : ''}`}>
+                    <Upload size={14} />
+                    {uploading === 'qr' ? 'Uploading…' : 'Upload QR Code Image'}
+                    <input ref={qrInputRef} type="file" accept="image/*" className="hidden" onChange={handleQrUpload} disabled={uploading === 'qr'} />
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Disabled info */}
+            {gw === 'none' && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <p className="text-sm text-gray-600 leading-relaxed">
+                  The donate button will be hidden. Visitors will see your contact details instead (phone / email from the Contact tab). Use this when your payment gateway is undergoing maintenance or re-registration.
+                </p>
+              </div>
+            )}
           </div>
         )
+      }
 
       case 'header':
         return (
