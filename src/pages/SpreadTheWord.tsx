@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
-import { Share2, CheckCircle, Send, Facebook, Youtube, Instagram } from 'lucide-react'
+import { Share2, CheckCircle, Send, ExternalLink } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { usePageContent } from '../hooks/usePageContent'
 import { useSettings } from '../contexts/SettingsContext'
@@ -74,9 +74,9 @@ export default function SpreadTheWord() {
   const labelCls = 'block text-xs font-semibold text-gray-500 mb-1.5'
 
   const socialLinks = [
-    { icon: Facebook,  label: 'Facebook',  url: settings.facebook_url,  color: '#1877f2' },
-    { icon: Youtube,   label: 'YouTube',   url: settings.youtube_url,   color: '#ff0000' },
-    { icon: Instagram, label: 'Instagram', url: settings.instagram_url, color: '#e1306c' },
+    { label: 'Facebook',  url: settings.facebook_url,  color: '#1877f2' },
+    { label: 'YouTube',   url: settings.youtube_url,   color: '#ff0000' },
+    { label: 'Instagram', url: settings.instagram_url, color: '#e1306c' },
   ].filter(s => s.url)
 
   const shareItems = [
@@ -143,21 +143,18 @@ export default function SpreadTheWord() {
             <div className="text-center mb-8">
               <h3 className="text-lg font-bold mb-5" style={{ color: 'var(--site-heading-color)' }}>Follow & Share Our Social Pages</h3>
               <div className="flex justify-center gap-4 flex-wrap">
-                {socialLinks.map(s => {
-                  const Icon = s.icon
-                  return (
-                    <a
-                      key={s.label}
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-semibold text-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
-                      style={{ borderColor: s.color, color: s.color }}
-                    >
-                      <Icon size={18} /> {s.label}
-                    </a>
-                  )
-                })}
+                {socialLinks.map(s => (
+                  <a
+                    key={s.label}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl border-2 font-semibold text-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                    style={{ borderColor: s.color, color: s.color }}
+                  >
+                    <ExternalLink size={16} /> {s.label}
+                  </a>
+                ))}
               </div>
             </div>
           )}
