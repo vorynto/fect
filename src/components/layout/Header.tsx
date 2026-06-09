@@ -52,7 +52,14 @@ export default function Header() {
       .order('sort_order')
       .then(({ data }) => {
         if (data && data.length > 0) {
-          setNavItems(buildTree(data))
+          // Only use DB nav if it contains the new page structure.
+          // If the DB still has the old nav (About us / Our Services),
+          // fall back to the hardcoded nav so new pages appear immediately.
+          const hasNewNav = data.some(
+            item => item.path === '/what-you-can-do' || item.path === '/our-mission'
+          )
+          if (hasNewNav) setNavItems(buildTree(data))
+          // else: keep FALLBACK_NAV (admin should click "Reset to Default" in nav admin)
         }
       })
   }, [])

@@ -1,12 +1,33 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Plus, Pencil, Trash2, Save, X, Eye, EyeOff, Link as LinkIcon, Star } from 'lucide-react'
+import { Plus, Pencil, Trash2, Save, X, Eye, EyeOff, Link as LinkIcon, Star, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { NavItem } from '../../types'
 
 const empty: Omit<NavItem, 'id' | 'children'> = {
   label: '', path: '', parent_id: null, sort_order: 0, is_active: true, is_button: false, open_in_new: false,
 }
+
+const DEFAULT_PARENTS = [
+  { label: 'Home',            path: '/',                sort_order: 1, is_button: false },
+  { label: 'Our Story',       path: '/our-story',       sort_order: 2, is_button: false },
+  { label: 'What You Can Do', path: '/what-you-can-do', sort_order: 3, is_button: false },
+  { label: 'Gallery',         path: '/gallery',         sort_order: 4, is_button: false },
+  { label: 'Testimonials',    path: '/testimonials',    sort_order: 5, is_button: false },
+  { label: 'Contact',         path: '/contact',         sort_order: 6, is_button: false },
+  { label: 'Donate Now',      path: '/donate',          sort_order: 7, is_button: true  },
+]
+
+const DEFAULT_CHILDREN: { label: string; path: string; parent_label: string; sort_order: number }[] = [
+  { label: 'Our Mission',      path: '/our-mission',      parent_label: 'Our Story',       sort_order: 1 },
+  { label: 'Our Work Process', path: '/our-work-process', parent_label: 'Our Story',       sort_order: 2 },
+  { label: 'Who We Are',       path: '/who-we-are',       parent_label: 'Our Story',       sort_order: 3 },
+  { label: 'Refer a Student',  path: '/refer-a-student',  parent_label: 'What You Can Do', sort_order: 1 },
+  { label: 'Refer a Home',     path: '/refer-a-home',     parent_label: 'What You Can Do', sort_order: 2 },
+  { label: 'Donate',           path: '/donate',           parent_label: 'What You Can Do', sort_order: 3 },
+  { label: 'Become a Member',  path: '/become-a-member',  parent_label: 'What You Can Do', sort_order: 4 },
+  { label: 'Spread the Word',  path: '/spread-the-word',  parent_label: 'What You Can Do', sort_order: 5 },
+]
 
 export default function AdminNavigation() {
   const [items, setItems] = useState<NavItem[]>([])
@@ -60,6 +81,33 @@ export default function AdminNavigation() {
     fetch()
   }
 
+  const handleReset = async () => {
+    if (!confirm('This will delete ALL current nav items and replace them with the default structure. Continue?')) return
+    setSaving(true)
+    // Delete children first (FK constraint), then parents
+    await supabase.from('nav_items').delete().not('parent_id', 'is', null)
+    await supabase.from('nav_items').delete().is('parent_id', null)
+    // Insert parents
+    const { data: inserted, error: pe } = await supabase
+      .from('nav_items')
+      .insert(DEFAULT_PARENTS.map(p => ({ ...p, is_active: true, open_in_new: false, parent_id: null })))
+      .select('id, label')
+    if (pe || !inserted) { toast.error('Reset failed: ' + pe?.message); setSaving(false); return }
+    // Build label→id map
+    const idMap: Record<string, string> = {}
+    inserted.forEach((r: { id: string; label: string }) => { idMap[r.label] = r.id })
+    // Insert children
+    const childRows = DEFAULT_CHILDREN.map(c => ({
+      label: c.label, path: c.path, sort_order: c.sort_order,
+      parent_id: idMap[c.parent_label] ?? null,
+      is_active: true, is_button: false, open_in_new: false,
+    }))
+    const { error: ce } = await supabase.from('nav_items').insert(childRows)
+    setSaving(false)
+    if (ce) toast.error('Children insert failed: ' + ce.message)
+    else { toast.success('Nav reset to default!'); fetch() }
+  }
+
   const NavRow = ({ item, depth = 0 }: { item: NavItem; depth?: number }) => (
     <div className={`${depth > 0 ? 'ml-8 border-l-2 border-gray-100 pl-4' : ''}`}>
       <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 flex items-center gap-3 group mb-2">
@@ -108,6 +156,13 @@ export default function AdminNavigation() {
           <p className="text-gray-500 text-sm">Manage header nav links, dropdowns, and the donate button</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={handleReset}
+            disabled={saving}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:border-gray-400 disabled:opacity-60"
+          >
+            <RotateCcw size={15} /> Reset to Default
+          </button>
           <button onClick={() => openNew(null)} className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-semibold" style={{ backgroundColor: 'var(--site-primary)' }}>
             <Plus size={16} /> Add Link
           </button>
