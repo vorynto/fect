@@ -103,7 +103,7 @@ export default function WhoWeAre() {
                 className="rounded-2xl overflow-hidden shadow-lg"
               >
                 <img
-                  src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80"
+                  src={getImage('sidebar_image', 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=600&q=80')}
                   alt="FECT volunteers"
                   className="w-full h-52 object-cover"
                 />

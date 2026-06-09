@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
-import { Save, Upload, Image as ImageIcon } from 'lucide-react'
+import { Save, Upload, Image as ImageIcon, RefreshCw } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { PageContent } from '../../types'
 
@@ -31,21 +31,21 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'reg_section',label: '80G Note',          titleLabel: 'Value',           contentLabel: '' },
   ],
   'Our Services': [
-    { key: 'hero',                  label: 'Hero Banner',             titleLabel: 'Page Title',  contentLabel: 'Subtitle', image: true },
-    { key: 'education',             label: 'Education — Title & Desc',titleLabel: 'Title',       contentLabel: 'Description' },
-    { key: 'education_bullets',     label: 'Education — Bullet Points',titleLabel: '',           contentLabel: 'One bullet per line' },
-    { key: 'village_camps',         label: 'Village Camps — Title & Desc', titleLabel: 'Title', contentLabel: 'Description' },
-    { key: 'village_camps_bullets', label: 'Village Camps — Bullets', titleLabel: '',           contentLabel: 'One bullet per line' },
-    { key: 'medical',               label: 'Medical — Title & Desc',  titleLabel: 'Title',       contentLabel: 'Description' },
-    { key: 'medical_bullets',       label: 'Medical — Bullets',       titleLabel: '',            contentLabel: 'One bullet per line' },
-    { key: 'aged',                  label: 'Aged & Challenged — Title & Desc', titleLabel: 'Title', contentLabel: 'Description' },
-    { key: 'aged_bullets',          label: 'Aged & Challenged — Bullets', titleLabel: '',        contentLabel: 'One bullet per line' },
-    { key: 'special_children',      label: 'Special Children — Title & Desc', titleLabel: 'Title', contentLabel: 'Description' },
-    { key: 'special_children_bullets',label: 'Special Children — Bullets', titleLabel: '',      contentLabel: 'One bullet per line' },
-    { key: 'annadanam',             label: 'Annadanam — Title & Desc',titleLabel: 'Title',       contentLabel: 'Description' },
-    { key: 'annadanam_bullets',     label: 'Annadanam — Bullets',     titleLabel: '',            contentLabel: 'One bullet per line' },
-    { key: 'elders',                label: 'Elders Support — Title & Desc', titleLabel: 'Title', contentLabel: 'Description' },
-    { key: 'elders_bullets',        label: 'Elders Support — Bullets',titleLabel: '',            contentLabel: 'One bullet per line' },
+    { key: 'hero',                  label: 'Hero Banner',                    titleLabel: 'Page Title', contentLabel: 'Subtitle', image: true },
+    { key: 'education',             label: 'Education — Title, Desc & Image',titleLabel: 'Title',      contentLabel: 'Description', image: true },
+    { key: 'education_bullets',     label: 'Education — Bullet Points',      titleLabel: '',           contentLabel: 'One bullet per line' },
+    { key: 'village_camps',         label: 'Village Camps — Title, Desc & Image', titleLabel: 'Title', contentLabel: 'Description', image: true },
+    { key: 'village_camps_bullets', label: 'Village Camps — Bullets',        titleLabel: '',           contentLabel: 'One bullet per line' },
+    { key: 'medical',               label: 'Medical — Title, Desc & Image',  titleLabel: 'Title',      contentLabel: 'Description', image: true },
+    { key: 'medical_bullets',       label: 'Medical — Bullets',              titleLabel: '',           contentLabel: 'One bullet per line' },
+    { key: 'aged',                  label: 'Aged & Challenged — Title, Desc & Image', titleLabel: 'Title', contentLabel: 'Description', image: true },
+    { key: 'aged_bullets',          label: 'Aged & Challenged — Bullets',    titleLabel: '',           contentLabel: 'One bullet per line' },
+    { key: 'special_children',      label: 'Special Children — Title, Desc & Image', titleLabel: 'Title', contentLabel: 'Description', image: true },
+    { key: 'special_children_bullets', label: 'Special Children — Bullets', titleLabel: '',            contentLabel: 'One bullet per line' },
+    { key: 'annadanam',             label: 'Annadanam — Title, Desc & Image',titleLabel: 'Title',      contentLabel: 'Description', image: true },
+    { key: 'annadanam_bullets',     label: 'Annadanam — Bullets',            titleLabel: '',           contentLabel: 'One bullet per line' },
+    { key: 'elders',                label: 'Elders Support — Title, Desc & Image', titleLabel: 'Title', contentLabel: 'Description', image: true },
+    { key: 'elders_bullets',        label: 'Elders Support — Bullets',       titleLabel: '',           contentLabel: 'One bullet per line' },
   ],
   'Our Mission': [
     { key: 'hero',         label: 'Hero Banner',      titleLabel: 'Page Title',      contentLabel: 'Subtitle', image: true },
@@ -71,8 +71,9 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'detail_6',     label: 'Detail Step 6',        titleLabel: 'Title',           contentLabel: 'Description' },
     { key: 'detail_7',     label: 'Detail Step 7',        titleLabel: 'Title',           contentLabel: 'Description' },
     { key: 'detail_8',     label: 'Detail Step 8',        titleLabel: 'Title',           contentLabel: 'Description' },
-    { key: 'homes_title',  label: 'Homes Section Heading',titleLabel: 'Heading',         contentLabel: '' },
-    { key: 'homes_content',label: 'Homes Section Body',   titleLabel: '',                contentLabel: 'Body Text' },
+    { key: 'homes_title',  label: 'Homes Section Heading', titleLabel: 'Heading', contentLabel: '' },
+    { key: 'homes_content',label: 'Homes Section Body',    titleLabel: '',        contentLabel: 'Body Text' },
+    { key: 'homes_image',  label: 'Homes Section Photo',   titleLabel: '',        contentLabel: '', image: true },
   ],
   'Who We Are': [
     { key: 'hero',    label: 'Hero Banner',      titleLabel: 'Page Title',      contentLabel: 'Subtitle', image: true },
@@ -83,6 +84,7 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'stat_members',  label: 'Stat: Members',   titleLabel: 'Value (e.g. 40+)',   contentLabel: 'Label' },
     { key: 'stat_students', label: 'Stat: Students',  titleLabel: 'Value (e.g. 1,200+)',contentLabel: 'Label' },
     { key: 'stat_districts',label: 'Stat: Districts', titleLabel: 'Value (e.g. 12+)',   contentLabel: 'Label' },
+    { key: 'sidebar_image', label: 'Sidebar Photo',  titleLabel: '', contentLabel: '', image: true },
     { key: 'value_1', label: 'Value 1', titleLabel: 'Title', contentLabel: 'Description' },
     { key: 'value_2', label: 'Value 2', titleLabel: 'Title', contentLabel: 'Description' },
     { key: 'value_3', label: 'Value 3', titleLabel: 'Title', contentLabel: 'Description' },
@@ -139,6 +141,99 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
     { key: 'tier_3', label: 'Donation Tier 3', titleLabel: 'Amount', contentLabel: 'Name|Description' },
     { key: 'tier_4', label: 'Donation Tier 4', titleLabel: 'Amount', contentLabel: 'Name|Description' },
   ],
+}
+
+// Default content matching each page's hardcoded fallbacks
+const PAGE_DEFAULTS: Record<string, Record<string, { title?: string; content?: string }>> = {
+  our_services: {
+    hero:                   { title: 'Our Services',                     content: 'Seven focused programmes — education, medical care, village outreach, and community support — transforming lives across Tamil Nadu.' },
+    education:              { title: 'Education Support',                content: 'FECT has a reliable network to identify and support academically strong students who require financial assistance. We believe no child should be denied education due to poverty.' },
+    education_bullets:      { content: 'School fees, uniforms, stationery, and notebooks for poor students\nSemester fees, hostel charges, and career guidance for graduates\nSpecial initiatives for orphans and children with special needs\nAnnual camps offering yoga, health checkups, games, and meals\nRemote village school support with educational supplies' },
+    village_camps:          { title: 'Camp for Village Students',        content: 'We reach out to remote and underserved schools in villages, providing infrastructure improvements, one-day engagement activities, and annual educational supply distribution.' },
+    village_camps_bullets:  { content: 'Identifies underserved remote schools across Tamil Nadu\nInfrastructure improvements including floors and school furniture\nOne-day engagement activities and games for children\nAnnual educational supply distribution to students\nBuilding lasting connections with rural communities' },
+    medical:                { title: 'Medical Services',                 content: 'We extend financial and logistical support for emergency medical cases, surgical treatments, and ongoing care for critically ill patients including cancer survivors.' },
+    medical_bullets:        { content: 'Emergency medical treatment and surgical assistance\nBlood donation coordination and awareness drives\nAnnual support for cancer patients — food and necessities\nConnecting patients with the right medical facilities\nFinancial aid for families facing medical crises' },
+    aged:                   { title: 'Support for Aged & Challenged',    content: 'We provide consistent, compassionate support to orphanages and homes for elderly and mentally challenged individuals — ensuring dignity and comfort through regular visits and provisions.' },
+    aged_bullets:           { content: 'Monthly sponsorship of 4–5 orphanage and care facilities\nFood provisions tailored to the preferences of residents\nClothing and essential items like cots and bedsheets\nRegular personal visits to maintain human connection\nCoordinating volunteers for on-ground assistance' },
+    special_children:       { title: 'Support for Special Children',     content: 'Children with special needs deserve the same opportunities and joys as any other child. FECT provides educational sponsorship, meals, toys, and home facility support tailored to their unique needs.' },
+    special_children_bullets:{ content: 'Educational sponsorship for children with special needs\nHomemade nutritious meals delivered with care\nSpecially designed toys and stimulating clothing\nHome facility support and accessibility improvements\nEngaging activities and events to build joy and confidence' },
+    annadanam:              { title: 'Food Sponsor / Annadanam',         content: 'We cook and serve delicious, wholesome meals ourselves — feeding approximately 100 people daily including elders, children, and individuals on the roadside who have no other means.' },
+    annadanam_bullets:      { content: 'Daily meal service for approximately 100 people\nServes elders, children, and roadside individuals\nMeals cooked personally by FECT volunteers\nFestival special meal events and distributions\nNutritionally balanced, home-style cooking' },
+    elders:                 { title: 'Support for Elders & Roadside Residents', content: 'We ensure the elderly and roadside residents are not forgotten — providing seasonal clothing, bedsheets during monsoon, food provisions, and fulfilling their personalised wishlists.' },
+    elders_bullets:         { content: 'Festival clothing distributions for elders\nMonsoon season bedsheet and blanket sponsorship\nRegular food provisions and grocery deliveries\nPersonalised wishlist fulfilment for residents\nCompassionate visits and community engagement' },
+  },
+  our_mission: {
+    hero:         { title: 'Our Mission',         content: 'Channelling collective compassion into lasting change — one student, one family, one community at a time.' },
+    mission:      { title: 'Our Mission',         content: 'We are a group of members from various fields who joined hands together to provide education to the deserving poor and needy children. Our aim is to motivate these students so that when they become leaders of tomorrow, they will help their fellow brethren to pursue education — creating a self-sustaining cycle of upliftment.' },
+    vision:       { title: 'Our Vision',          content: 'Education is the only panacea for poverty. A society in which every child, regardless of economic background, has access to quality education and the opportunity to build a dignified life. When youthful energy is channelled productively through education, it becomes a shield against destitution, violence, and addiction.' },
+    values_intro: { title: 'What Drives Us',      content: 'Three principles guide every decision we make at FECT — from selecting beneficiaries to managing donations.' },
+    goal_1:       { title: 'Education for All',   content: 'Sponsor school and college fees, books, and uniforms for underprivileged children who show academic promise but lack financial means.' },
+    goal_2:       { title: 'Community Strength',  content: 'Build a network of committed members and donors who act as a collective safety net for families facing crises beyond their control.' },
+    goal_3:       { title: 'Long-term Impact',    content: 'Ensure our beneficiaries do not just survive but thrive — monitoring progress and providing mentorship alongside financial support.' },
+    goal_4:       { title: 'Awareness & Advocacy',content: 'Spread the message that a single act of generosity multiplies across generations and encourages others to join our cause.' },
+  },
+  our_work_process: {
+    hero:          { title: 'Our Work Process',           content: 'A transparent, step-by-step approach ensuring every rupee reaches those who truly need it.' },
+    step_1:        { title: 'Gathering Referrals',        content: 'We receive referrals from community members, schools, hospitals, volunteers, and direct applicants across Tamil Nadu.' },
+    step_2:        { title: 'Verification',               content: 'Our team conducts telephonic checks followed by in-person field visits to confirm genuine need and assess the situation.' },
+    step_3:        { title: 'Fund Raising',               content: 'Verified cases are shared with our donor network and members who contribute directly to the specific cause.' },
+    step_4:        { title: 'Direct Payment & Monitoring',content: 'Funds are paid directly to institutions (schools, hospitals) with receipts. We continue to monitor each beneficiary\'s progress.' },
+    detail_1:      { title: 'Case Intake',          content: 'Student or patient referred by community member, school, hospital, or direct application.' },
+    detail_2:      { title: 'Contact Verification', content: 'Telephonic contact to verify information and initial assessment of the case.' },
+    detail_3:      { title: 'Volunteer Engagement', content: 'Direct volunteer interaction with students and families to understand circumstances.' },
+    detail_4:      { title: 'On-site Visit',         content: 'Field visit to confirm circumstances, gather academic records and supporting documents.' },
+    detail_5:      { title: 'Funding Request',       content: 'Case details shared across donor network and FECT membership for contributions.' },
+    detail_6:      { title: 'Direct Payment',        content: 'Donations collected and paid directly to the institution — receipts documented and shared.' },
+    detail_7:      { title: 'Progress Update',       content: 'Donors receive updates about the student\'s academic progress via email or network.' },
+    detail_8:      { title: 'Ongoing Monitoring',    content: 'Continuous academic monitoring with remedial support provided to students who struggle.' },
+    homes_title:   { title: 'Support for Homes & Institutions' },
+    homes_content: { content: 'For homes serving elderly, disabled, or orphaned individuals, FECT provides assistance 4–6 times annually. We identify genuinely struggling organisations, engage with management and residents, and create customised wish lists addressing provisions, medical needs, and activity materials.' },
+  },
+  who_we_are: {
+    hero:           { title: 'Who We Are',       content: 'Engineers turned social workers — a team that chose purpose over profit.' },
+    origin:         { title: 'How It All Began', content: 'FECT began as a group of computer engineering students who shared a common purpose beyond their studies. The founders initially pursued separate careers but later reunited with determination to establish an organisation dedicated to social impact. The group\'s philosophy centres on a straightforward principle: the best possible way to eliminate poverty is to inherit education to our younger generation.' },
+    growth:         { title: 'Growth & Development', content: 'The organisation experienced significant challenges during its formation but persevered through collaborative support. The team gradually identified and assisted disadvantaged youth while expanding operations. The group was officially registered as Friends Educational and Charitable Trust (FECT) in February 2009 to formalise their charitable work.' },
+    today:          { title: 'FECT Today',       content: 'Currently, the organisation comprises approximately 40 members from various professional backgrounds — committed to improving children\'s educational opportunities and life prospects. Together we have touched the lives of over 1,200 students and supported numerous care homes across Tamil Nadu.' },
+    stat_founded:   { title: '2009',    content: 'Year Founded' },
+    stat_members:   { title: '40+',     content: 'Active Members' },
+    stat_students:  { title: '1,200+',  content: 'Students Supported' },
+    stat_districts: { title: '12+',     content: 'Districts Covered' },
+    value_1:        { title: 'Compassion',    content: 'We treat every beneficiary with dignity — behind every case is a human story that deserves our best.' },
+    value_2:        { title: 'Community',     content: 'We believe in the collective power of ordinary people doing extraordinary things together.' },
+    value_3:        { title: 'Commitment',    content: 'Our members have sustained this mission for over 15 years through consistent personal effort.' },
+    value_4:        { title: 'On-the-ground', content: 'We do the field work ourselves — visiting families, schools, and homes rather than operating remotely.' },
+  },
+  what_you_can_do: {
+    hero:           { title: 'What You Can Do',   content: 'There are many ways to make a difference — choose what suits you best and join the FECT family.' },
+    intro:          { title: 'Every Action Counts', content: 'We understand that not everyone can contribute in the same way. Whether you have time, money, connections, or simply a social media account — there is a meaningful role for you at FECT. Here are five powerful ways you can help transform lives.' },
+    refer_student:  { title: 'Refer a Student',   content: 'Know an academically promising child from a financially struggling family? Refer them to us and we will take care of their education — fees, books, uniforms, and more.' },
+    refer_home:     { title: 'Refer a Home',       content: 'Know a local orphanage, elderly home, or care institution that needs support? Help us find organisations where we can extend our helping hands.' },
+    donate:         { title: 'Donate',             content: 'Every rupee you donate goes directly to a student\'s fees, medical treatment, or care home supplies. We maintain full financial transparency with receipts shared for every disbursement.' },
+    become_member:  { title: 'Become a Member',    content: 'Join our growing family of 40+ committed members. Members contribute monthly, quarterly, or annually and can participate in field visits, awareness drives, and events.' },
+    spread_word:    { title: 'Spread the Word',    content: 'Even if you cannot contribute financially, your voice matters. Share our story with friends, family, and on social media — awareness is the first step to change.' },
+  },
+  refer_student: {
+    hero:  { title: 'Refer a Student', content: 'Know a bright child held back by poverty? Help us find them — we\'ll take care of the rest.' },
+    intro: { content: 'We are looking for academically good poor children or schools that have a cluster of financially struggling students. If you know such a student or school, please fill in this form and we will reach out within a few days.' },
+  },
+  refer_home: {
+    hero:  { title: 'Refer a Home', content: 'Help us find organisations that need support — orphanages, elderly homes, and care institutions.' },
+    intro: { content: 'We are happy to extend our helping hands to Homes which need financial assistance. If you know of any local organisations in need of funding or supplies such as provisions, clothing, and food items, please fill in this form and we will reach out.' },
+  },
+  become_a_member: {
+    hero:        { title: 'Become a Member', content: 'Join 40+ committed individuals who are transforming lives across Tamil Nadu through consistent, compassionate support.' },
+    intro:       { content: 'Becoming a member of FECT means you pledge a regular contribution — however small — towards the cause of education and care. Members are the backbone of our operations. Please fill in the form below and we will get in touch to complete the enrolment process.' },
+    req_title:   { title: 'Membership Requirements' },
+    req_content: { content: 'Members are required to promise a certain sum of money which can be made either monthly, quarterly, half-yearly, or yearly. Minimum contributions are: Monthly ₹100 · Quarterly ₹300 · Half-Yearly ₹500 · Yearly ₹1,000. Members also have the option to participate in field work activities.' },
+  },
+  spread_the_word: {
+    hero:    { title: 'Spread the Word', content: 'Your voice can change lives. Help us reach more people who need support and more people who can give it.' },
+    intro:   { content: 'Though we are very active on social media, we would have better coverage if each of you spoke to your group of friends and enhanced our efforts. Share our story, share our mission — and help us find the next student or home that needs our support.' },
+    share_1: { title: 'Tell Your Friends',      content: 'A personal recommendation carries more weight than any ad. Tell the people in your life about FECT.' },
+    share_2: { title: 'Share on Social Media',  content: 'Post about our work on Facebook, Instagram, or WhatsApp. Tag us and encourage your network to engage.' },
+    share_3: { title: 'Refer Potential Donors', content: 'Know someone who might want to contribute? Connect them with us — we\'ll take it from there.' },
+    share_4: { title: 'Spread in Communities',  content: 'Share in schools, religious gatherings, resident associations, or workplaces where people look for causes to support.' },
+  },
 }
 
 const PAGE_KEY_MAP: Record<string, string> = {
@@ -222,6 +317,34 @@ export default function AdminPages() {
     else toast.success(`All ${pageTab} content saved!`)
   }
 
+  const handleLoadDefaults = async (pageTab: string) => {
+    const pk = PAGE_KEY_MAP[pageTab]
+    const defaults = PAGE_DEFAULTS[pk]
+    if (!defaults) { toast.error('No defaults defined for this page'); return }
+    setSaving(`${pk}.__defaults__`)
+    const upserts = Object.entries(defaults).map(([sk, vals]) => ({
+      page_key: pk,
+      section_key: sk,
+      title: vals.title || '',
+      content: vals.content || '',
+      image_url: '',
+      updated_at: new Date().toISOString(),
+    }))
+    const { error } = await supabase.from('page_content').upsert(upserts, { onConflict: 'page_key,section_key' })
+    setSaving(null)
+    if (error) { toast.error(error.message); return }
+    // Merge into local state
+    setData(prev => {
+      const next = { ...prev }
+      upserts.forEach(u => {
+        const mk = `${u.page_key}.${u.section_key}`
+        next[mk] = { ...next[mk], title: u.title, content: u.content } as PageContent
+      })
+      return next
+    })
+    toast.success(`Default content loaded for ${pageTab}!`)
+  }
+
   const sections = SECTIONS[activeTab] || []
   const pageKey = PAGE_KEY_MAP[activeTab]
 
@@ -232,15 +355,27 @@ export default function AdminPages() {
           <h1 className="text-2xl font-extrabold text-gray-900">Page Content</h1>
           <p className="text-gray-500 text-sm">Edit every text section across all website pages</p>
         </div>
-        <button
-          onClick={() => handleSaveAll(activeTab)}
-          disabled={saving === `${pageKey}.__all__`}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-semibold disabled:opacity-60"
-          style={{ backgroundColor: 'var(--site-primary)' }}
-        >
-          <Save size={16} />
-          {saving === `${pageKey}.__all__` ? 'Saving...' : `Save All ${activeTab}`}
-        </button>
+        <div className="flex items-center gap-2">
+          {PAGE_DEFAULTS[pageKey] && (
+            <button
+              onClick={() => handleLoadDefaults(activeTab)}
+              disabled={saving === `${pageKey}.__defaults__`}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-semibold text-sm hover:border-gray-400 disabled:opacity-60"
+            >
+              <RefreshCw size={15} />
+              {saving === `${pageKey}.__defaults__` ? 'Loading…' : 'Load Defaults'}
+            </button>
+          )}
+          <button
+            onClick={() => handleSaveAll(activeTab)}
+            disabled={saving === `${pageKey}.__all__`}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-semibold disabled:opacity-60"
+            style={{ backgroundColor: 'var(--site-primary)' }}
+          >
+            <Save size={16} />
+            {saving === `${pageKey}.__all__` ? 'Saving...' : `Save All ${activeTab}`}
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}

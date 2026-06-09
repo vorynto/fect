@@ -160,7 +160,7 @@ export default function OurWorkProcess() {
             </div>
             <div className="rounded-3xl overflow-hidden shadow-xl">
               <img
-                src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80"
+                src={getImage('homes_image', 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80')}
                 alt="Home support"
                 className="w-full h-80 object-cover"
               />
