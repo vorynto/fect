@@ -41,8 +41,8 @@ export interface SiteSettings {
   notify_on_donation: boolean
   // Razorpay live key (public-safe key id only)
   razorpay_key_id: string
-  // Payment gateway selection
-  payment_gateway: 'razorpay' | 'billdesk' | 'qr' | 'none'
+  // Payment gateways — comma-separated enabled list e.g. "razorpay,qr"
+  payment_gateway: string
   billdesk_merchant_id: string
   billdesk_env: 'uat' | 'production'
   donation_qr_url: string

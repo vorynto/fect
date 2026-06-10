@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSettings } from '../../contexts/SettingsContext'
-import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard, QrCode, X } from 'lucide-react'
+import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard, QrCode } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { SiteSettings } from '../../types'
 
@@ -253,7 +253,16 @@ export default function AdminSettings() {
         )
 
       case 'mailpay': {
-        const gw = (form.payment_gateway || 'razorpay') as 'razorpay' | 'billdesk' | 'qr' | 'none'
+        const enabledList = (form.payment_gateway || '')
+          .split(',').map((s: string) => s.trim()).filter(Boolean)
+        const isOn = (key: string) => enabledList.includes(key)
+
+        const toggleGw = (key: string) => {
+          const next = isOn(key)
+            ? enabledList.filter((g: string) => g !== key)
+            : [...enabledList, key]
+          set('payment_gateway', next.join(','))
+        }
 
         const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
           const file = e.target.files?.[0]
@@ -269,36 +278,16 @@ export default function AdminSettings() {
           e.target.value = ''
         }
 
-        const GW_OPTIONS = [
-          {
-            key: 'razorpay',
-            label: 'Razorpay',
-            icon: <CreditCard size={20} />,
-            desc: 'Cards, UPI, Net Banking, Wallets via Razorpay checkout',
-            color: '#3395ff',
-          },
-          {
-            key: 'billdesk',
-            label: 'BillDesk',
-            icon: <CreditCard size={20} />,
-            desc: 'Cards, UPI, Net Banking via BillDesk SmartGateway',
-            color: '#e65c00',
-          },
-          {
-            key: 'qr',
-            label: 'QR Code',
-            icon: <QrCode size={20} />,
-            desc: 'Donors scan your UPI/bank QR and enter their UTR reference',
-            color: '#27ae60',
-          },
-          {
-            key: 'none',
-            label: 'Disabled',
-            icon: <X size={20} />,
-            desc: 'Hide the pay button — donors are shown contact info instead',
-            color: '#7f8c8d',
-          },
-        ] as const
+        const Toggle = ({ on, onClick }: { on: boolean; onClick: () => void }) => (
+          <button
+            type="button"
+            onClick={onClick}
+            className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${on ? '' : 'bg-gray-200'}`}
+            style={on ? { backgroundColor: 'var(--site-primary)' } : {}}
+          >
+            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${on ? 'translate-x-7' : 'translate-x-1'}`} />
+          </button>
+        )
 
         return (
           <div className="space-y-6">
@@ -321,123 +310,129 @@ export default function AdminSettings() {
                 </label>
               </div>
               <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
-                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the included <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret. The recipient address above is read by that function.
+                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret.
               </div>
             </div>
 
-            {/* Payment gateway selection */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
-              <div className="flex items-center gap-2">
+            {/* Payment gateways — multiple can be on */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-2">
+              <div className="flex items-center gap-2 mb-4">
                 <CreditCard size={18} style={{ color: 'var(--site-primary)' }} />
-                <h3 className="font-bold text-gray-900">Donation Payment Gateway</h3>
+                <h3 className="font-bold text-gray-900">Payment Gateways</h3>
               </div>
-              <p className="text-sm text-gray-500">Choose which payment method is active on the Donate page. Only one can be enabled at a time.</p>
+              <p className="text-sm text-gray-500 mb-5">
+                Enable one or more payment methods. When multiple are on, donors can choose their preferred method on the Donate page.
+              </p>
 
-              <div className="grid sm:grid-cols-2 gap-3">
-                {GW_OPTIONS.map(opt => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => set('payment_gateway', opt.key)}
-                    className={`flex items-start gap-4 p-4 rounded-xl border-2 text-left transition-all ${
-                      gw === opt.key ? 'border-transparent shadow-md' : 'border-gray-100 hover:border-gray-300'
-                    }`}
-                    style={gw === opt.key ? { borderColor: opt.color, backgroundColor: opt.color + '12' } : {}}
-                  >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0 mt-0.5"
-                      style={{ backgroundColor: opt.color }}
-                    >
-                      {opt.icon}
+              {/* ── Razorpay ── */}
+              <div className={`rounded-2xl border-2 transition-all ${isOn('razorpay') ? 'border-blue-200 bg-blue-50/40' : 'border-gray-100'}`}>
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer select-none"
+                  onClick={() => toggleGw('razorpay')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: '#3395ff' }}>
+                      <CreditCard size={18} />
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                        {opt.label}
-                        {gw === opt.key && (
-                          <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: opt.color }}>Active</span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{opt.desc}</p>
+                      <p className="font-bold text-gray-900 text-sm">Razorpay</p>
+                      <p className="text-xs text-gray-500">Cards, UPI, Net Banking, Wallets</p>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Razorpay config */}
-            {gw === 'razorpay' && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                <h4 className="font-bold text-gray-900 text-sm">Razorpay Configuration</h4>
-                <Input label="Razorpay Key ID (Live or Test)" field="razorpay_key_id" placeholder="rzp_live_xxxxxxxxxxxxx" />
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
-                  <strong>Where to find it:</strong> Razorpay Dashboard → Settings → API Keys. Paste your <strong>Key ID</strong> here (starts with <code className="bg-blue-100 px-1 rounded">rzp_live_</code> for production).
-                  <br /><br />
-                  <strong>Security:</strong> Only the Key ID goes here — it is safe to expose publicly. Never paste the Key Secret.
-                </div>
-              </div>
-            )}
-
-            {/* BillDesk config */}
-            {gw === 'billdesk' && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                <h4 className="font-bold text-gray-900 text-sm">BillDesk Configuration</h4>
-                <Input label="Merchant ID" field="billdesk_merchant_id" placeholder="FECTXXXX" />
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Environment</label>
-                  <div className="flex gap-3">
-                    {(['production', 'uat'] as const).map(env => (
-                      <button
-                        key={env}
-                        type="button"
-                        onClick={() => set('billdesk_env', env)}
-                        className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
-                          (form.billdesk_env || 'production') === env
-                            ? 'text-white border-transparent'
-                            : 'border-gray-200 text-gray-600 hover:border-gray-400'
-                        }`}
-                        style={(form.billdesk_env || 'production') === env ? { backgroundColor: '#e65c00' } : {}}
-                      >
-                        {env === 'production' ? 'Production (Live)' : 'UAT (Testing)'}
-                      </button>
-                    ))}
                   </div>
+                  <Toggle on={isOn('razorpay')} onClick={() => toggleGw('razorpay')} />
                 </div>
-                <div className="p-4 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 leading-relaxed">
-                  <strong>Requires a Supabase Edge Function:</strong> BillDesk order creation needs server-side JWT signing using your BillDesk secret key. Deploy the <code className="bg-orange-100 px-1 rounded">supabase/functions/billdesk-create-order</code> Edge Function and set <code className="bg-orange-100 px-1 rounded">BILLDESK_SECRET</code> + <code className="bg-orange-100 px-1 rounded">BILLDESK_CLIENT_ID</code> as Supabase secrets. Contact your BillDesk account manager for credentials.
-                </div>
-              </div>
-            )}
-
-            {/* QR code config */}
-            {gw === 'qr' && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                <h4 className="font-bold text-gray-900 text-sm">QR Code Configuration</h4>
-                <p className="text-sm text-gray-500">Upload your UPI / bank QR code. Donors will scan it and enter their UTR reference number to confirm payment.</p>
-                {form.donation_qr_url && (
-                  <div className="flex items-start gap-4">
-                    <img src={form.donation_qr_url as string} alt="Donation QR" className="w-40 h-40 object-contain border rounded-xl bg-gray-50 p-2" />
-                    <div className="text-sm text-green-600 font-medium pt-2">QR code uploaded and active</div>
+                {isOn('razorpay') && (
+                  <div className="px-4 pb-4 space-y-3 border-t border-blue-100 pt-4">
+                    <Input label="Razorpay Key ID" field="razorpay_key_id" placeholder="rzp_live_xxxxxxxxxxxxx" />
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
+                      <strong>Where to find it:</strong> Razorpay Dashboard → Settings → API Keys → Key ID (starts with <code className="bg-blue-100 px-1 rounded">rzp_live_</code>). The Key Secret is not needed here.
+                    </div>
                   </div>
                 )}
-                <div>
-                  <input type="text" value={(form.donation_qr_url as string) ?? ''} onChange={e => set('donation_qr_url', e.target.value)} placeholder="Paste image URL or upload below" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none text-sm text-gray-700 mb-2" />
-                  <label className={`flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-green-400 text-sm text-gray-500 transition-colors ${uploading === 'qr' ? 'opacity-60' : ''}`}>
-                    <Upload size={14} />
-                    {uploading === 'qr' ? 'Uploading…' : 'Upload QR Code Image'}
-                    <input ref={qrInputRef} type="file" accept="image/*" className="hidden" onChange={handleQrUpload} disabled={uploading === 'qr'} />
-                  </label>
-                </div>
               </div>
-            )}
 
-            {/* Disabled info */}
-            {gw === 'none' && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  The donate button will be hidden. Visitors will see your contact details instead (phone / email from the Contact tab). Use this when your payment gateway is undergoing maintenance or re-registration.
-                </p>
+              {/* ── BillDesk ── */}
+              <div className={`rounded-2xl border-2 transition-all ${isOn('billdesk') ? 'border-orange-200 bg-orange-50/40' : 'border-gray-100'}`}>
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer select-none"
+                  onClick={() => toggleGw('billdesk')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: '#e65c00' }}>
+                      <CreditCard size={18} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">BillDesk</p>
+                      <p className="text-xs text-gray-500">Cards, UPI, Net Banking via BillDesk SmartGateway</p>
+                    </div>
+                  </div>
+                  <Toggle on={isOn('billdesk')} onClick={() => toggleGw('billdesk')} />
+                </div>
+                {isOn('billdesk') && (
+                  <div className="px-4 pb-4 space-y-3 border-t border-orange-100 pt-4">
+                    <Input label="Merchant ID" field="billdesk_merchant_id" placeholder="FECTXXXX" />
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Environment</label>
+                      <div className="flex gap-3">
+                        {(['production', 'uat'] as const).map(env => (
+                          <button key={env} type="button" onClick={() => set('billdesk_env', env)}
+                            className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${(form.billdesk_env || 'production') === env ? 'text-white border-transparent' : 'border-gray-200 text-gray-600 hover:border-gray-400'}`}
+                            style={(form.billdesk_env || 'production') === env ? { backgroundColor: '#e65c00' } : {}}
+                          >
+                            {env === 'production' ? 'Production (Live)' : 'UAT (Testing)'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl text-xs text-orange-800 leading-relaxed">
+                      <strong>Requires Edge Function:</strong> Deploy <code className="bg-orange-100 px-1 rounded">supabase/functions/billdesk-create-order</code> and set <code className="bg-orange-100 px-1 rounded">BILLDESK_SECRET</code> + <code className="bg-orange-100 px-1 rounded">BILLDESK_CLIENT_ID</code> as Supabase secrets.
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* ── QR Code ── */}
+              <div className={`rounded-2xl border-2 transition-all ${isOn('qr') ? 'border-green-200 bg-green-50/40' : 'border-gray-100'}`}>
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer select-none"
+                  onClick={() => toggleGw('qr')}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white shrink-0" style={{ backgroundColor: '#27ae60' }}>
+                      <QrCode size={18} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">QR Code</p>
+                      <p className="text-xs text-gray-500">Donors scan your UPI QR and enter their UTR reference</p>
+                    </div>
+                  </div>
+                  <Toggle on={isOn('qr')} onClick={() => toggleGw('qr')} />
+                </div>
+                {isOn('qr') && (
+                  <div className="px-4 pb-4 space-y-3 border-t border-green-100 pt-4">
+                    <p className="text-sm text-gray-500">Upload your UPI / bank QR code image.</p>
+                    {form.donation_qr_url && (
+                      <div className="flex items-center gap-4">
+                        <img src={form.donation_qr_url as string} alt="QR" className="w-32 h-32 object-contain border rounded-xl bg-white p-1.5" />
+                        <span className="text-sm text-green-600 font-medium">QR active ✓</span>
+                      </div>
+                    )}
+                    <input type="text" value={(form.donation_qr_url as string) ?? ''} onChange={e => set('donation_qr_url', e.target.value)} placeholder="Paste image URL or upload below" className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none text-sm text-gray-700" />
+                    <label className={`flex items-center gap-2 cursor-pointer px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 hover:border-green-400 text-sm text-gray-500 transition-colors ${uploading === 'qr' ? 'opacity-60' : ''}`}>
+                      <Upload size={14} />
+                      {uploading === 'qr' ? 'Uploading…' : 'Upload QR Code Image'}
+                      <input ref={qrInputRef} type="file" accept="image/*" className="hidden" onChange={handleQrUpload} disabled={uploading === 'qr'} />
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {enabledList.length === 0 && (
+                <p className="text-sm text-gray-400 italic pt-2 text-center">
+                  All gateways off — the Donate page will show contact info instead.
+                </p>
+              )}
+            </div>
           </div>
         )
       }
