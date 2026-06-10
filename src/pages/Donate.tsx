@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import {
   Heart, Shield, CheckCircle, IndianRupee, QrCode,
-  Phone, Mail, CreditCard, AlertCircle,
+  Phone, Mail, CreditCard, AlertCircle, Landmark, Copy, Check,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { usePageContent } from '../hooks/usePageContent'
@@ -87,6 +87,150 @@ function loadModuleScript(src: string): Promise<boolean> {
     s.src = src; s.type = 'module'; s.onload = () => resolve(true); s.onerror = () => resolve(false)
     document.body.appendChild(s)
   })
+}
+
+// ─── Bank Transfer Component ─────────────────────────────────────────────────
+
+const BANK_ACCOUNTS = [
+  {
+    tag:     'Domestic',
+    tagColor:'var(--site-primary)',
+    title:   'Indian Bank Transfer',
+    name:    'Friends Educational and Charitable Trust',
+    fields: [
+      { label: 'Account No.',  value: '781010100103350', copy: true },
+      { label: 'Bank',         value: 'Axis Bank — Savings Account' },
+      { label: 'Branch',       value: 'Saidapet Branch' },
+      { label: 'Address',      value: 'Door No.10, 2nd Street, 3rd Main Road, CIT Nagar, Nandanam, Chennai 35' },
+      { label: 'IFSC Code',    value: 'UTIB0000781', copy: true },
+    ],
+  },
+  {
+    tag:     'Foreign / FCRA',
+    tagColor:'#2980b9',
+    title:   'Foreign Contributions (FCRA)',
+    name:    'Friends Educational and Charitable Trust-FCRA',
+    fields: [
+      { label: 'Account No.',  value: '918010004660722', copy: true },
+      { label: 'Bank',         value: 'Axis Bank — Savings Account' },
+      { label: 'Branch',       value: 'Saidapet Branch' },
+      { label: 'Address',      value: 'No 10, 2nd Street, 3rd Main Rd, CIT Nagar, Nandanam, Chennai 35' },
+      { label: 'IFSC Code',    value: 'UTIB0000781', copy: true },
+      { label: 'Swift Code',   value: 'AXISINBB781', copy: true },
+    ],
+  },
+]
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy"
+      className="ml-2 p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+    >
+      {copied ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
+    </button>
+  )
+}
+
+function BankTransfer() {
+  return (
+    <section className="py-16 bg-gray-50 border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} className="text-center mb-10"
+        >
+          <div
+            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white mx-auto mb-4"
+            style={{ backgroundColor: 'var(--site-primary)' }}
+          >
+            <Landmark size={26} />
+          </div>
+          <h2 className="text-3xl font-extrabold mb-3" style={{ color: 'var(--site-heading-color)' }}>
+            Direct Bank Transfer
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            We can help the poor and the needy only when you contribute to such activities, however small it is.
+            We go to the masses to collect resources to help the people who need the most. We cannot support them
+            without your ardent support. We request you to be contributing generously to this cause and make our
+            work more effective.
+          </p>
+        </motion.div>
+
+        {/* Account cards */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {BANK_ACCOUNTS.map((acc, i) => (
+            <motion.div
+              key={acc.tag}
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+            >
+              {/* Card header */}
+              <div className="px-6 py-4 flex items-center gap-3" style={{ backgroundColor: acc.tagColor + '12' }}>
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
+                  style={{ backgroundColor: acc.tagColor }}
+                >
+                  <Landmark size={16} />
+                </div>
+                <div>
+                  <span
+                    className="text-xs font-bold uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
+                    style={{ backgroundColor: acc.tagColor }}
+                  >
+                    {acc.tag}
+                  </span>
+                  <p className="text-sm font-bold text-gray-900 mt-0.5">{acc.title}</p>
+                </div>
+              </div>
+
+              {/* Account name */}
+              <div className="px-6 pt-4 pb-2">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">Account Name</p>
+                <p className="font-bold text-gray-900 text-sm leading-snug">{acc.name}</p>
+              </div>
+
+              {/* Fields */}
+              <div className="px-6 pb-5 space-y-2.5 mt-2">
+                {acc.fields.map(f => (
+                  <div key={f.label} className="flex items-start justify-between gap-2">
+                    <span className="text-xs text-gray-400 shrink-0 w-24 pt-0.5">{f.label}</span>
+                    <div className="flex items-center gap-0 flex-1 justify-end">
+                      <span className="text-sm font-semibold text-gray-800 text-right leading-snug">
+                        {f.value}
+                      </span>
+                      {f.copy && <CopyButton text={f.value} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Note */}
+        <motion.p
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+          className="text-center text-sm text-gray-400 mt-8"
+        >
+          After transferring, please email your transaction reference to{' '}
+          <a href="mailto:contactus@fect.in" className="font-medium" style={{ color: 'var(--site-primary)' }}>
+            contactus@fect.in
+          </a>{' '}
+          so we can issue your 80G receipt.
+        </motion.p>
+      </div>
+    </section>
+  )
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -514,6 +658,9 @@ export default function Donate() {
           </div>
         </div>
       </section>
+
+      {/* ── Bank Transfer Section ── */}
+      <BankTransfer />
     </div>
   )
 }
