@@ -35,6 +35,14 @@ export interface SiteSettings {
   contact_person_email: string
   contact_person_phone: string
   contact_person_landline: string
+  // SMTP configuration
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_pass: string
+  smtp_from_name: string
+  smtp_from_email: string
+  smtp_encryption: 'ssl' | 'starttls' | 'none'
   // Mail notifications
   notification_email: string
   notify_on_contact: boolean

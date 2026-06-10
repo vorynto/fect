@@ -1,20 +1,15 @@
 // Supabase Edge Function: notify
-// 1. Sends an admin alert email when a contact form or donation is received.
-// 2. Sends a beautiful thank-you email to the donor on every donation.
-//
+// Sends emails via SMTP (nodemailer) — credentials stored in site_settings.
 // Triggered by Supabase Database Webhooks on INSERT to:
 //   - contact_messages
 //   - donations
 //
-// Required secrets:
-//   RESEND_API_KEY              — your Resend API key (https://resend.com)
-//   FROM_EMAIL                  — verified sender, e.g. "FECT <noreply@fect.in>"
-//   SUPABASE_URL                — auto-injected
-//   SUPABASE_SERVICE_ROLE_KEY   — auto-injected
-//
-// Deploy:  supabase functions deploy notify --no-verify-jwt
+// Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (auto-injected)
+// Deploy: supabase functions deploy notify --no-verify-jwt
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+// @ts-ignore — Deno npm specifier
+import nodemailer from 'npm:nodemailer@6.9.7'
 
 interface WebhookPayload {
   type: 'INSERT' | 'UPDATE' | 'DELETE'
@@ -22,26 +17,50 @@ interface WebhookPayload {
   record: Record<string, unknown>
 }
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
-const FROM_EMAIL     = Deno.env.get('FROM_EMAIL')     ?? 'FECT <onboarding@resend.dev>'
-const SUPABASE_URL   = Deno.env.get('SUPABASE_URL')   ?? ''
-const SERVICE_KEY    = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+interface SmtpSettings {
+  smtp_host: string
+  smtp_port: number
+  smtp_user: string
+  smtp_pass: string
+  smtp_from_name: string
+  smtp_from_email: string
+  smtp_encryption: string
+  notification_email: string
+  notify_on_contact: boolean
+  notify_on_donation: boolean
+}
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')   ?? ''
+const SERVICE_KEY  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY)
 
-// ─── Email sender ─────────────────────────────────────────────────────────────
+// ─── Email sender ──────────────────────────────────────────────────────────────
 
-async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
-  const res = await fetch('https://api.resend.com/emails', {
-    method:  'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
+async function buildTransporter(s: SmtpSettings) {
+  const secure   = s.smtp_encryption === 'ssl'
+  const ignoreTLS = s.smtp_encryption === 'none'
+  return nodemailer.createTransport({
+    host:    s.smtp_host,
+    port:    Number(s.smtp_port) || 587,
+    secure,
+    ignoreTLS,
+    auth: { user: s.smtp_user, pass: s.smtp_pass || '' },
   })
-  if (!res.ok) console.error('Resend error:', await res.text())
-  return res.ok
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+async function sendEmail(
+  s: SmtpSettings,
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
+  const transporter = await buildTransporter(s)
+  const fromAddr = `"${s.smtp_from_name || 'FECT'}" <${s.smtp_from_email}>`
+  await transporter.sendMail({ from: fromAddr, to, subject, html })
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatAmount(amount: unknown): string {
   return `₹${Number(amount ?? 0).toLocaleString('en-IN')}`
@@ -52,7 +71,7 @@ function formatDate(dateStr: unknown): string {
   return new Date(String(dateStr)).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-// ─── Thank-you email to donor ────────────────────────────────────────────────
+// ─── Thank-you email to donor ─────────────────────────────────────────────────
 
 function donorThankYouHtml(r: Record<string, unknown>): string {
   const isQR      = r.status === 'qr_pending'
@@ -88,7 +107,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 
-        <!-- ── Header ── -->
+        <!-- Header -->
         <tr>
           <td style="background:#c0392b;padding:36px 40px;text-align:center;">
             <p style="margin:0 0 6px;font-size:13px;color:rgba(255,255,255,0.75);letter-spacing:2px;text-transform:uppercase;font-weight:600;">Friends Educational &amp; Charitable Trust</p>
@@ -97,7 +116,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
           </td>
         </tr>
 
-        <!-- ── Greeting ── -->
+        <!-- Greeting -->
         <tr>
           <td style="padding:36px 40px 0;">
             <p style="margin:0 0 16px;font-size:20px;font-weight:700;color:#1a1a2e;">Dear ${name},</p>
@@ -110,7 +129,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
           </td>
         </tr>
 
-        <!-- ── Donation summary card ── -->
+        <!-- Donation summary card -->
         <tr>
           <td style="padding:24px 40px;">
             <table width="100%" cellpadding="0" cellspacing="0"
@@ -150,26 +169,32 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
           </td>
         </tr>
 
-        <!-- ── Impact section ── -->
+        <!-- Impact section -->
         <tr>
           <td style="padding:8px 40px 28px;">
             <p style="margin:0 0 14px;font-size:15px;font-weight:700;color:#1a1a2e;">Your donation helps us:</p>
             <table width="100%" cellpadding="0" cellspacing="0">
-              ${[
-                ['📚', 'Pay school fees, books &amp; uniforms for deserving students'],
-                ['🏥', 'Fund emergency medical treatment for critical patients'],
-                ['🍛', 'Cook and serve daily meals to 100+ elders &amp; children'],
-                ['🏠', 'Support orphanages, elderly homes &amp; special children'],
-              ].map(([icon, text]) => `
               <tr>
-                <td style="padding:6px 0;width:28px;vertical-align:top;font-size:17px;">${icon}</td>
-                <td style="padding:6px 0 6px 10px;color:#555;font-size:14px;line-height:1.6;">${text}</td>
-              </tr>`).join('')}
+                <td style="padding:6px 0;width:28px;vertical-align:top;font-size:17px;">📚</td>
+                <td style="padding:6px 0 6px 10px;color:#555;font-size:14px;line-height:1.6;">Pay school fees, books &amp; uniforms for deserving students</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;width:28px;vertical-align:top;font-size:17px;">🏥</td>
+                <td style="padding:6px 0 6px 10px;color:#555;font-size:14px;line-height:1.6;">Fund emergency medical treatment for critical patients</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;width:28px;vertical-align:top;font-size:17px;">🍛</td>
+                <td style="padding:6px 0 6px 10px;color:#555;font-size:14px;line-height:1.6;">Cook and serve daily meals to 100+ elders &amp; children</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0;width:28px;vertical-align:top;font-size:17px;">🏠</td>
+                <td style="padding:6px 0 6px 10px;color:#555;font-size:14px;line-height:1.6;">Support orphanages, elderly homes &amp; special children</td>
+              </tr>
             </table>
           </td>
         </tr>
 
-        <!-- ── 80G banner ── -->
+        <!-- 80G banner -->
         <tr>
           <td style="padding:0 40px 28px;">
             <table width="100%" cellpadding="0" cellspacing="0"
@@ -187,7 +212,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
           </td>
         </tr>
 
-        <!-- ── Contact ── -->
+        <!-- Contact -->
         <tr>
           <td style="padding:0 40px 32px;">
             <p style="margin:0 0 10px;font-size:14px;color:#888;line-height:1.7;">
@@ -206,7 +231,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
           </td>
         </tr>
 
-        <!-- ── Footer ── -->
+        <!-- Footer -->
         <tr>
           <td style="background:#f8f8f8;padding:24px 40px;border-top:1px solid #eee;text-align:center;">
             <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#1a1a2e;">Friends Educational &amp; Charitable Trust</p>
@@ -223,7 +248,7 @@ function donorThankYouHtml(r: Record<string, unknown>): string {
 </html>`
 }
 
-// ─── Admin alert email ────────────────────────────────────────────────────────
+// ─── Admin alert emails ────────────────────────────────────────────────────────
 
 function adminDonationHtml(r: Record<string, unknown>): string {
   return `
@@ -255,7 +280,7 @@ function adminContactHtml(r: Record<string, unknown>): string {
   `
 }
 
-// ─── Main handler ─────────────────────────────────────────────────────────────
+// ─── Main handler ──────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   try {
@@ -264,15 +289,22 @@ Deno.serve(async (req) => {
 
     const { data: settings } = await supabase
       .from('site_settings')
-      .select('notification_email, notify_on_contact, notify_on_donation')
+      .select('smtp_host,smtp_port,smtp_user,smtp_pass,smtp_from_name,smtp_from_email,smtp_encryption,notification_email,notify_on_contact,notify_on_donation')
       .single()
 
-    const adminEmail = settings?.notification_email
+    if (!settings?.smtp_host || !settings?.smtp_from_email) {
+      console.warn('[notify] SMTP not configured — skipping email send')
+      return new Response('smtp_not_configured', { status: 200 })
+    }
+
+    const s = settings as SmtpSettings
+    const adminEmail = s.notification_email
     const r = payload.record
 
     // ── Contact form ──────────────────────────────────────────────────────────
-    if (payload.table === 'contact_messages' && settings?.notify_on_contact && adminEmail) {
+    if (payload.table === 'contact_messages' && s.notify_on_contact && adminEmail) {
       await sendEmail(
+        s,
         adminEmail,
         `New enquiry from ${r.name ?? 'website'} — FECT`,
         adminContactHtml(r),
@@ -281,19 +313,21 @@ Deno.serve(async (req) => {
 
     // ── Donation ──────────────────────────────────────────────────────────────
     if (payload.table === 'donations') {
-      // 1. Admin alert
-      if (settings?.notify_on_donation && adminEmail) {
+      // Admin alert
+      if (s.notify_on_donation && adminEmail) {
         await sendEmail(
+          s,
           adminEmail,
           `New donation: ${formatAmount(r.amount)} from ${r.name ?? 'donor'} — FECT`,
           adminDonationHtml(r),
         )
       }
 
-      // 2. Donor thank-you (always send when we have a valid email)
+      // Donor thank-you (always send when we have a valid email)
       const donorEmail = String(r.email ?? '').trim()
       if (donorEmail && donorEmail.includes('@')) {
         await sendEmail(
+          s,
           donorEmail,
           `Thank you for your donation, ${r.name ?? 'Friend'}! 🙏 — FECT`,
           donorThankYouHtml(r),

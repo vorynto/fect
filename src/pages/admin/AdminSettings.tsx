@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useSettings } from '../../contexts/SettingsContext'
-import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard, QrCode } from 'lucide-react'
+import { Save, Upload, Palette, Globe, Phone, Share2, AlignLeft, Layout, Type, Building2, MailCheck, CreditCard, QrCode, Mail, Send, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { SiteSettings } from '../../types'
 
@@ -28,6 +28,8 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState<'logo' | 'favicon' | 'qr' | null>(null)
   const [activeTab, setActiveTab] = useState('branding')
+  const [testingEmail, setTestingEmail] = useState(false)
+  const [showSmtpPass, setShowSmtpPass] = useState(false)
   const qrInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setForm(settings) }, [settings])
@@ -264,6 +266,37 @@ export default function AdminSettings() {
           set('payment_gateway', next.join(','))
         }
 
+        const handleSendTestEmail = async () => {
+          if (!form.smtp_host || !form.smtp_user || !form.smtp_from_email) {
+            toast.error('Fill in SMTP Host, Username, and From Email before testing')
+            return
+          }
+          if (!form.notification_email) {
+            toast.error('Set a Notification Recipient Email to receive the test')
+            return
+          }
+          setTestingEmail(true)
+          try {
+            const { error } = await supabase.functions.invoke('test-email', {
+              body: {
+                host:      form.smtp_host,
+                port:      form.smtp_port || 587,
+                user:      form.smtp_user,
+                pass:      form.smtp_pass,
+                fromName:  form.smtp_from_name || 'FECT',
+                fromEmail: form.smtp_from_email,
+                encryption:form.smtp_encryption || 'starttls',
+                recipient: form.notification_email,
+              },
+            })
+            if (error) throw new Error(error.message)
+            toast.success('Test email sent! Check your inbox.')
+          } catch (err: unknown) {
+            toast.error('Failed: ' + (err instanceof Error ? err.message : String(err)))
+          }
+          setTestingEmail(false)
+        }
+
         const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
           const file = e.target.files?.[0]
           if (!file) return
@@ -291,26 +324,154 @@ export default function AdminSettings() {
 
         return (
           <div className="space-y-6">
-            {/* Email notifications */}
+
+            {/* ── SMTP Configuration ── */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
+              <div className="flex items-center gap-2">
+                <Mail size={18} style={{ color: 'var(--site-primary)' }} />
+                <h3 className="font-bold text-gray-900">SMTP Email Configuration</h3>
+              </div>
+              <p className="text-sm text-gray-500">
+                Configure your outgoing mail server. All system emails (admin alerts + donor thank-you emails) are sent via this SMTP connection.
+              </p>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <Input label="SMTP Host" field="smtp_host" placeholder="mail.fect.in  or  smtp.gmail.com" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Port &amp; Encryption</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={(form.smtp_port as number) ?? 587}
+                      onChange={e => set('smtp_port' as keyof SiteSettings, e.target.value)}
+                      className="w-24 px-3 py-2.5 rounded-xl border border-gray-200 focus:outline-none text-gray-800 text-sm"
+                    />
+                    <div className="flex gap-1 flex-1">
+                      {(['starttls', 'ssl', 'none'] as const).map(enc => (
+                        <button
+                          key={enc}
+                          type="button"
+                          onClick={() => {
+                            set('smtp_encryption', enc)
+                            if (enc === 'ssl')      set('smtp_port' as keyof SiteSettings, '465')
+                            if (enc === 'starttls') set('smtp_port' as keyof SiteSettings, '587')
+                            if (enc === 'none')     set('smtp_port' as keyof SiteSettings, '25')
+                          }}
+                          className={`flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
+                            (form.smtp_encryption || 'starttls') === enc
+                              ? 'text-white border-transparent'
+                              : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                          }`}
+                          style={(form.smtp_encryption || 'starttls') === enc ? { backgroundColor: 'var(--site-primary)' } : {}}
+                        >
+                          {enc === 'starttls' ? 'STARTTLS' : enc === 'ssl' ? 'SSL/TLS' : 'None'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Port auto-fills when you pick encryption type</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">SMTP Username</label>
+                  <input
+                    type="text"
+                    value={(form.smtp_user as string) ?? ''}
+                    onChange={e => set('smtp_user', e.target.value)}
+                    placeholder="mail@fect.in"
+                    autoComplete="off"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none text-gray-800 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">SMTP Password</label>
+                  <div className="relative">
+                    <input
+                      type={showSmtpPass ? 'text' : 'password'}
+                      value={(form.smtp_pass as string) ?? ''}
+                      onChange={e => set('smtp_pass', e.target.value)}
+                      placeholder="••••••••••••"
+                      autoComplete="new-password"
+                      className="w-full px-4 py-3 pr-11 rounded-xl border border-gray-200 focus:outline-none text-gray-800 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSmtpPass(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showSmtpPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <Input label="From Name" field="smtp_from_name" placeholder="FECT - Friends Educational & Charitable Trust" />
+                </div>
+                <div>
+                  <Input label="From Email Address" field="smtp_from_email" type="email" placeholder="noreply@fect.in" />
+                </div>
+              </div>
+
+              {/* Common provider hints */}
+              <div className="grid sm:grid-cols-3 gap-3">
+                {[
+                  { name: 'cPanel / Hosting',  host: 'mail.yourdomain.com', port: 587, enc: 'starttls' },
+                  { name: 'Gmail',             host: 'smtp.gmail.com',       port: 587, enc: 'starttls' },
+                  { name: 'Outlook / Office 365', host: 'smtp.office365.com', port: 587, enc: 'starttls' },
+                ].map(p => (
+                  <button
+                    key={p.name}
+                    type="button"
+                    onClick={() => {
+                      set('smtp_host', p.host)
+                      set('smtp_port' as keyof SiteSettings, String(p.port))
+                      set('smtp_encryption', p.enc)
+                    }}
+                    className="text-left px-3 py-2.5 rounded-xl border border-gray-200 hover:border-gray-400 transition-all text-xs"
+                  >
+                    <p className="font-semibold text-gray-800">{p.name}</p>
+                    <p className="text-gray-400 mt-0.5">{p.host} : {p.port}</p>
+                  </button>
+                ))}
+              </div>
+
+              {/* Test email */}
+              <div className="flex items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={handleSendTestEmail}
+                  disabled={testingEmail}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-dashed text-sm font-semibold transition-all disabled:opacity-60 hover:border-solid"
+                  style={{ borderColor: 'var(--site-primary)', color: 'var(--site-primary)' }}
+                >
+                  <Send size={14} />
+                  {testingEmail ? 'Sending…' : 'Send Test Email'}
+                </button>
+                <p className="text-xs text-gray-400">Sends to the Notification Recipient address below. Save changes first.</p>
+              </div>
+
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 leading-relaxed">
+                <strong>Deploy required:</strong> The <code className="bg-blue-100 px-1 rounded">notify</code> and <code className="bg-blue-100 px-1 rounded">test-email</code> Edge Functions must be deployed to Supabase for emails to send. No API keys needed — SMTP credentials are stored here and read by the function at send time.
+              </div>
+            </div>
+
+            {/* ── Email Notifications ── */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5">
               <div className="flex items-center gap-2">
                 <MailCheck size={18} style={{ color: 'var(--site-primary)' }} />
                 <h3 className="font-bold text-gray-900">Email Notifications</h3>
               </div>
-              <p className="text-sm text-gray-500">Receive an email alert when a contact form is submitted or a donation is made.</p>
-              <Input label="Notification Recipient Email" field="notification_email" type="email" placeholder="admin@fect.in" />
+              <p className="text-sm text-gray-500">Admin alert emails when forms are submitted or donations are received. Donor thank-you emails are always sent.</p>
+              <Input label="Admin Notification Email" field="notification_email" type="email" placeholder="admin@fect.in" />
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={!!form.notify_on_contact} onChange={e => set('notify_on_contact', e.target.checked)} className="w-4 h-4 rounded" />
-                  <span className="text-sm font-medium text-gray-700">Notify me on new contact form submissions</span>
+                  <span className="text-sm font-medium text-gray-700">Notify admin on new contact form submissions</span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={!!form.notify_on_donation} onChange={e => set('notify_on_donation', e.target.checked)} className="w-4 h-4 rounded" />
-                  <span className="text-sm font-medium text-gray-700">Notify me on new donations</span>
+                  <span className="text-sm font-medium text-gray-700">Notify admin on new donations</span>
                 </label>
-              </div>
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
-                <strong>Setup required (one-time):</strong> Email sending needs a Supabase Edge Function with a mail provider (Resend). Deploy the <code className="bg-amber-100 px-1 rounded">supabase/functions/notify</code> function and set your <code className="bg-amber-100 px-1 rounded">RESEND_API_KEY</code> as a Supabase secret.
               </div>
             </div>
 
