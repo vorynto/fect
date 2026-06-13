@@ -123,25 +123,37 @@ export default function OurStory() {
                   <li><strong className="text-white">80G:</strong> {regSection}</li>
                 </ul>
               </motion.div>
-
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3} className="rounded-2xl p-6 bg-gray-50 border border-gray-100">
-                <h4 className="font-bold text-lg mb-3" style={{ color: 'var(--site-heading-color)' }}>Key Stats</h4>
-                <ul className="space-y-3">
-                  {[
-                    { label: 'Students Supported', value: '1200+' },
-                    { label: 'Active Members',      value: '40+' },
-                    { label: 'Years of Service',    value: '15+' },
-                    { label: 'Districts Covered',   value: '12+' },
-                  ].map(s => (
-                    <li key={s.label} className="flex justify-between text-sm">
-                      <span className="text-gray-600">{s.label}</span>
-                      <span className="font-bold" style={{ color: 'var(--site-primary)' }}>{s.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
             </div>
           </div>
+
+          {/* Key Stats — horizontal card below the story */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-14 rounded-2xl bg-gray-50 border border-gray-100 p-8"
+          >
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 divide-y sm:divide-y-0 lg:divide-x divide-gray-200">
+              {[
+                { label: 'Students Supported', value: '1200+' },
+                { label: 'Active Members',      value: '40+' },
+                { label: 'Years of Service',    value: '15+' },
+                { label: 'Districts Covered',   value: '12+' },
+              ].map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="text-center lg:px-4"
+                >
+                  <div className="text-3xl sm:text-4xl font-extrabold mb-1" style={{ color: 'var(--site-primary)' }}>{s.value}</div>
+                  <div className="text-sm font-medium text-gray-500">{s.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
