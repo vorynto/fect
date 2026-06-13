@@ -14,7 +14,6 @@ import toast from 'react-hot-toast'
 declare global {
   interface Window {
     Razorpay: new (options: RazorpayOptions) => { open: () => void }
-    loadBillDeskSdk: (flowType: string, config: BillDeskConfig) => void
   }
 }
 
@@ -29,19 +28,6 @@ interface RazorpayOptions {
 interface RazorpayResponse {
   razorpay_payment_id: string; razorpay_order_id?: string; razorpay_signature?: string
 }
-interface BillDeskConfig {
-  responseHandler: (txn: BillDeskTxn) => void
-  flowConfig: {
-    merchantId: string; bdOrderId: string; authToken: string
-    childWindow: boolean; retryCount: number
-    prefs: { payment_categories: string[] }
-  }
-  flowType: string
-}
-interface BillDeskTxn {
-  txnResponse?: { txnStatus?: string; transactionId?: string; bdOrderId?: string }
-}
-
 type GatewayKey = 'razorpay' | 'billdesk' | 'qr'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -76,15 +62,6 @@ function loadScript(src: string): Promise<boolean> {
     if (document.querySelector(`script[src="${src}"]`)) { resolve(true); return }
     const s = document.createElement('script')
     s.src = src; s.onload = () => resolve(true); s.onerror = () => resolve(false)
-    document.body.appendChild(s)
-  })
-}
-
-function loadModuleScript(src: string): Promise<boolean> {
-  return new Promise(resolve => {
-    if (document.querySelector(`script[src="${src}"]`)) { resolve(true); return }
-    const s = document.createElement('script')
-    s.src = src; s.type = 'module'; s.onload = () => resolve(true); s.onerror = () => resolve(false)
     document.body.appendChild(s)
   })
 }
@@ -252,6 +229,7 @@ export default function Donate() {
   const [success, setSuccess] = useState(false)
   const [paymentId, setPaymentId] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [successAmount, setSuccessAmount] = useState<number | null>(null)
 
   // QR-specific
   const [qrStep, setQrStep] = useState(false)
@@ -265,6 +243,37 @@ export default function Donate() {
     else setSelectedGw(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.payment_gateway])
+
+  // Handle BillDesk redirect-back (/donate?status=success&ref=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('status')
+    if (!status) return
+    const ref = params.get('ref') || ''
+
+    if (status === 'success') {
+      // Pull the real donor name + amount from the recorded donation
+      if (ref) {
+        supabase.from('donations').select('name, amount').eq('txn_ref_no', ref).maybeSingle()
+          .then(({ data }) => {
+            if (data) {
+              setForm(f => ({ ...f, name: data.name || f.name }))
+              setSuccessAmount(data.amount ?? null)
+            }
+          })
+      }
+      setPaymentId(ref)
+      setSuccessMsg('Your payment has been received and verified. Thank you for your generous contribution!')
+      setSuccess(true)
+    } else if (status === 'failed') {
+      toast.error('Your payment was not completed. Please try again.')
+    } else if (status === 'error') {
+      toast.error('We could not verify your payment. If money was deducted, please contact us with your reference number.')
+    }
+    // Clean the query string from the URL
+    window.history.replaceState({}, '', '/donate')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Razorpay ────────────────────────────────────────────────────────────────
   const handleRazorpay = async () => {
@@ -297,47 +306,30 @@ export default function Donate() {
     }).open()
   }
 
-  // ── BillDesk ─────────────────────────────────────────────────────────────────
+  // ── BillDesk (legacy PGI redirect flow) ───────────────────────────────────────
+  // Matches the Merchant ID / Security ID / Checksum Key credentials.
+  // The billdesk-initiate Edge Function builds the signed `msg`; we auto-POST it
+  // to BillDesk's hosted page. BillDesk later redirects back to /donate?status=...
   const handleBilldesk = async () => {
-    const sdkUrl = (settings.billdesk_env || 'production') === 'uat'
-      ? 'https://uat1.billdesk.com/merchant-uat/sdk/dist/billdesksdk/billdesksdk.esm.js'
-      : 'https://pay.billdesk.com/web/merchantd/sdk/dist/billdesksdk/billdesksdk.esm.js'
     try {
-      const { data, error } = await supabase.functions.invoke('billdesk-create-order', {
-        body: { amount: finalAmount, name: form.name, email: form.email, phone: form.phone,
-                merchantId: settings.billdesk_merchant_id, env: settings.billdesk_env || 'production' },
+      const { data, error } = await supabase.functions.invoke('billdesk-initiate', {
+        body: { name: form.name, email: form.email, phone: form.phone, amount: finalAmount },
       })
-      if (error || !data?.bdOrderId)
-        throw new Error(error?.message || 'Order creation failed. Check the billdesk-create-order Edge Function.')
-      const loaded = await loadModuleScript(sdkUrl)
-      if (!loaded || !window.loadBillDeskSdk)
-        throw new Error('Failed to load BillDesk SDK. Check your network connection.')
-      window.loadBillDeskSdk('payments', {
-        responseHandler: async (txn) => {
-          const resp = txn.txnResponse
-          if (resp?.txnStatus === 'COMPLETE') {
-            await supabase.from('donations').insert([{
-              name: form.name, email: form.email, phone: form.phone, amount: finalAmount,
-              razorpay_payment_id: resp.transactionId || resp.bdOrderId || '',
-              razorpay_order_id: resp.bdOrderId || '',
-              status: 'success',
-            }])
-            setPaymentId(resp.transactionId || resp.bdOrderId || '')
-            setSuccessMsg('Your BillDesk payment has been received. Thank you!')
-            setSuccess(true)
-          } else {
-            toast.error('Payment not completed. Please try again.')
-          }
-          setProcessing(false)
-        },
-        flowConfig: {
-          merchantId: settings.billdesk_merchant_id || '',
-          bdOrderId: data.bdOrderId, authToken: data.authToken,
-          childWindow: false, retryCount: 0,
-          prefs: { payment_categories: ['card', 'emi', 'nb', 'upi', 'wallets', 'qr'] },
-        },
-        flowType: 'payments',
-      })
+      if (error || !data?.msg || !data?.bdUrl)
+        throw new Error(error?.message || 'Could not start BillDesk payment. Check the billdesk-initiate Edge Function.')
+
+      // Auto-submit a hidden form (POST) to BillDesk's hosted payment page
+      const f = document.createElement('form')
+      f.method = 'POST'
+      f.action = data.bdUrl
+      const input = document.createElement('input')
+      input.type = 'hidden'
+      input.name = 'msg'
+      input.value = data.msg
+      f.appendChild(input)
+      document.body.appendChild(f)
+      f.submit()
+      // Browser now navigates away to BillDesk; no need to reset processing.
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Payment failed. Please try again.')
       setProcessing(false)
@@ -389,7 +381,7 @@ export default function Donate() {
             Thank You, {form.name}!
           </h2>
           <p className="text-gray-600 mb-3">
-            Donation of <strong>₹{finalAmount.toLocaleString('en-IN')}</strong> recorded.
+            Donation of <strong>₹{(successAmount ?? finalAmount).toLocaleString('en-IN')}</strong> recorded.
           </p>
           {successMsg && <p className="text-sm text-gray-500 mb-4 leading-relaxed">{successMsg}</p>}
           {paymentId && <p className="text-xs text-gray-400 mb-8 font-mono">Ref: {paymentId}</p>}
