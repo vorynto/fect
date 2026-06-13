@@ -560,7 +560,7 @@ export default function Donate() {
                                   className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 text-center transition-all ${
                                     active ? 'border-transparent shadow-lg text-white' : 'border-gray-200 text-gray-600 hover:border-gray-400 bg-gray-50'
                                   }`}
-                                  style={active ? { backgroundColor: meta.color, borderColor: meta.color } : {}}
+                                  style={active ? { backgroundColor: 'var(--site-primary)', borderColor: 'var(--site-primary)' } : {}}
                                 >
                                   <Icon size={24} />
                                   <div>
@@ -587,7 +587,7 @@ export default function Donate() {
                       type="submit"
                       disabled={processing || finalAmount < 100 || !selectedGw}
                       className="w-full flex items-center justify-center gap-3 py-4 rounded-xl text-white font-bold text-lg transition-all hover:-translate-y-0.5 disabled:opacity-60"
-                      style={selectedGw ? { backgroundColor: GATEWAY_META[selectedGw].color } : { backgroundColor: 'var(--site-primary)' }}
+                      style={{ backgroundColor: 'var(--site-primary)' }}
                     >
                       {processing
                         ? <div className="w-6 h-6 rounded-full border-2 border-white/30 border-t-white animate-spin" />
