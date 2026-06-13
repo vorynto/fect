@@ -166,3 +166,13 @@ export interface ContactMessage {
   created_at: string
   is_read: boolean
 }
+
+export interface Video {
+  id: string
+  title: string
+  description: string
+  youtube_url: string
+  is_active: boolean
+  sort_order: number
+  created_at: string
+}

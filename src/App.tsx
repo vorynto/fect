@@ -20,6 +20,7 @@ import BecomeAMember from './pages/BecomeAMember'
 import SpreadTheWord from './pages/SpreadTheWord'
 import Gallery from './pages/Gallery'
 import GalleryAlbum from './pages/GalleryAlbum'
+import VideoGallery from './pages/VideoGallery'
 import Testimonials from './pages/Testimonials'
 import Contact from './pages/Contact'
 import Donate from './pages/Donate'
@@ -31,6 +32,7 @@ import AdminSettings from './pages/admin/AdminSettings'
 import AdminSlider from './pages/admin/AdminSlider'
 import AdminPages from './pages/admin/AdminPages'
 import AdminGallery from './pages/admin/AdminGallery'
+import AdminVideos from './pages/admin/AdminVideos'
 import AdminTestimonials from './pages/admin/AdminTestimonials'
 import AdminDonations from './pages/admin/AdminDonations'
 import AdminPrograms from './pages/admin/AdminPrograms'
@@ -87,6 +89,7 @@ export default function App() {
             <Route path="/spread-the-word" element={<Layout><SpreadTheWord /></Layout>} />
             <Route path="/gallery" element={<Layout><Gallery /></Layout>} />
             <Route path="/gallery/:id" element={<Layout><GalleryAlbum /></Layout>} />
+            <Route path="/videos" element={<Layout><VideoGallery /></Layout>} />
             <Route path="/testimonials" element={<Layout><Testimonials /></Layout>} />
             <Route path="/contact" element={<Layout><Contact /></Layout>} />
             <Route path="/donate" element={<Layout><Donate /></Layout>} />
@@ -98,6 +101,7 @@ export default function App() {
             <Route path="/admin/slider" element={<AdminPage><AdminSlider /></AdminPage>} />
             <Route path="/admin/pages" element={<AdminPage><AdminPages /></AdminPage>} />
             <Route path="/admin/gallery" element={<AdminPage><AdminGallery /></AdminPage>} />
+            <Route path="/admin/videos" element={<AdminPage><AdminVideos /></AdminPage>} />
             <Route path="/admin/testimonials" element={<AdminPage><AdminTestimonials /></AdminPage>} />
             <Route path="/admin/programs"    element={<AdminPage><AdminPrograms /></AdminPage>} />
             <Route path="/admin/quotes"      element={<AdminPage><AdminQuotes /></AdminPage>} />

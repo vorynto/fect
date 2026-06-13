@@ -19,8 +19,9 @@ const FALLBACK_NAV: NavItem[] = [
   { id: '3d', label: 'Become a Member',  path: '/become-a-member',    parent_id: '3',  sort_order: 4,  is_active: true, is_button: false, open_in_new: false },
   { id: '3e', label: 'Spread the Word',  path: '/spread-the-word',    parent_id: '3',  sort_order: 5,  is_active: true, is_button: false, open_in_new: false },
   { id: '4',  label: 'Gallery',          path: '/gallery',            parent_id: null, sort_order: 4,  is_active: true, is_button: false, open_in_new: false },
-  { id: '5',  label: 'Testimonials',     path: '/testimonials',       parent_id: null, sort_order: 5,  is_active: true, is_button: false, open_in_new: false },
-  { id: '6',  label: 'Contact',          path: '/contact',            parent_id: null, sort_order: 6,  is_active: true, is_button: false, open_in_new: false },
+  { id: '5',  label: 'Video Gallery',    path: '/videos',             parent_id: null, sort_order: 5,  is_active: true, is_button: false, open_in_new: false },
+  { id: '6',  label: 'Testimonials',     path: '/testimonials',       parent_id: null, sort_order: 6,  is_active: true, is_button: false, open_in_new: false },
+  { id: '7',  label: 'Contact',          path: '/contact',            parent_id: null, sort_order: 7,  is_active: true, is_button: false, open_in_new: false },
 ]
 
 function buildTree(flat: NavItem[]): NavItem[] {

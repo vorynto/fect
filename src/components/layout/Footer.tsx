@@ -29,9 +29,10 @@ export default function Footer() {
     { id: '1', label: 'Home',         path: '/'             },
     { id: '2', label: 'About Us',      path: '/our-story'    },
     { id: '3', label: 'Our Services', path: '/services'     },
-    { id: '4', label: 'Gallery',      path: '/gallery'      },
-    { id: '5', label: 'Testimonials', path: '/testimonials' },
-    { id: '6', label: 'Contact Us',   path: '/contact'      },
+    { id: '4', label: 'Gallery',       path: '/gallery'      },
+    { id: '5', label: 'Video Gallery', path: '/videos'       },
+    { id: '6', label: 'Testimonials',  path: '/testimonials' },
+    { id: '7', label: 'Contact Us',    path: '/contact'      },
   ]
 
   const defaultPrograms = ['Education Support', 'Medical Assistance', 'Orphanage & Elderly Care', 'Community Support', 'Refer a Student', 'Become a Member']

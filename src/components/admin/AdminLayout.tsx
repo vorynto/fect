@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Settings, Image, FileText, MessageSquare,
-  LogOut, Menu, X, Heart, ChevronRight, Images, Layers,
+  LogOut, Menu, X, Heart, ChevronRight, Images, Layers, Video,
   Navigation, Quote, Inbox
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -18,6 +18,7 @@ const nav = [
   { label: 'Page Content', path: '/admin/pages',          icon: <FileText size={18} />,        group: 'Content' },
   { label: 'Programs',     path: '/admin/programs',       icon: <Layers size={18} />,          group: 'Content' },
   { label: 'Gallery',      path: '/admin/gallery',        icon: <Images size={18} />,          group: 'Content' },
+  { label: 'Video Gallery',path: '/admin/videos',         icon: <Video size={18} />,           group: 'Content' },
   { label: 'Testimonials', path: '/admin/testimonials',   icon: <MessageSquare size={18} />,   group: 'Content' },
   { label: 'Enquiries',    path: '/admin/enquiries',      icon: <Inbox size={18} />,            group: 'Reports' },
   { label: 'Donations',    path: '/admin/donations',      icon: <Heart size={18} />,            group: 'Reports' },
