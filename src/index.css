@@ -34,6 +34,13 @@
     font-weight: 700;
   }
 
+  /* Headings inside light-text containers (e.g. red/dark cards) should follow that color */
+  .text-white :is(h1, h2, h3, h4, h5, h6),
+  .text-white h1, .text-white h2, .text-white h3,
+  .text-white h4, .text-white h5, .text-white h6 {
+    color: inherit;
+  }
+
   a {
     text-decoration: none;
     color: inherit;
