@@ -6,28 +6,64 @@ const fadeUp = {
   visible: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6 } }),
 }
 
+const DEFAULT_STORY = `FECT was born from a simple but powerful idea shared by a group of computer engineering friends — that no one should be held back by poverty when education can set them free. As students they dreamed of giving back to society; after graduation, life took each of them down their own career path, but the dream never faded.
+
+A few years later they reconnected, united by a single conviction: that education is the most powerful weapon against poverty. They did not just want to send children to school — they wanted those children to grow up and lift their own families and communities in turn, creating a cycle of change that carries across generations.
+
+What began informally — quietly identifying underprivileged children and sponsoring their education — soon gained momentum. The group that started as "FRIENDS" grew into "Friends to Care", and in February 2009 it was formally registered as the Friends Educational and Charitable Trust (FECT).
+
+Today that small founding circle has grown into a team of around 40 dedicated members, working across Tamil Nadu to give underprivileged children the education, dignity, and opportunity every child deserves.`
+
+// Extract a YouTube video ID from a full URL or a raw 11-char id
+function youtubeId(input: string): string {
+  const v = (input || '').trim()
+  if (!v) return ''
+  if (/^[\w-]{11}$/.test(v)) return v
+  const m = v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/)
+  return m ? m[1] : ''
+}
+
 export default function OurStory() {
   const { getTitle, get, getImage } = usePageContent('our_story')
 
-  const heroTitle   = getTitle('hero', 'About Us')
-  const heroDesc    = get('hero', 'From three friends with a vision to an organisation that has touched thousands of lives across Tamil Nadu.')
-  const foundTitle  = getTitle('founding', 'How It All Began')
-  const foundText   = get('founding', 'FECT began in the summer of 2006 as casual discussions among three computer engineering friends who called themselves "Friends to Care." After two years of building their careers, they reunited with a shared mission: to use education as the most powerful tool to eliminate poverty. The trust was formally registered on February 6, 2009.')
-  const missionTitle = getTitle('mission', 'Our Mission')
-  const missionText  = get('mission', 'To empower underprivileged children and youth through quality education, and to provide compassionate support for medical emergencies, elderly care, and the mentally challenged — building a self-sustaining cycle where today\'s beneficiaries become tomorrow\'s contributors.')
-  const visionTitle  = getTitle('vision', 'Our Vision')
-  const visionText   = get('vision', 'A Tamil Nadu where no child is denied education due to poverty, where no family faces a medical crisis alone, and where every individual regardless of background has the opportunity to thrive.')
+  const heroTitle = getTitle('hero', 'About Us')
+  const heroDesc  = get('hero', 'From a few friends with a vision to an organisation that has touched thousands of lives across Tamil Nadu.')
+  const foundTitle = getTitle('founding', 'Our Story')
+  const storyText  = get('founding', DEFAULT_STORY)
+  const paragraphs = storyText.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
 
   const regNumber  = getTitle('reg_number',  'TN-09/184')
   const regDate    = getTitle('reg_date',    '06.02.2009')
   const regType    = getTitle('reg_type',    'Charitable Trust')
   const regSection = getTitle('reg_section', 'Donations tax exempt 80G')
 
+  const video1 = youtubeId(getTitle('video_1', ''))
+  const video2 = youtubeId(getTitle('video_2', ''))
+  const video1Caption = get('video_1', '')
+  const video2Caption = get('video_2', '')
+  const hasVideos = !!(video1 || video2)
+
   const values = [
     { key: 'value_1', defaultTitle: 'Transparency',   defaultDesc: 'Every rupee is accounted for. We publish impact reports and maintain complete financial transparency with our donors.' },
     { key: 'value_2', defaultTitle: 'Compassion',     defaultDesc: 'We treat every beneficiary with dignity and empathy, recognising that behind every case is a human story deserving respect.' },
     { key: 'value_3', defaultTitle: 'Sustainability', defaultDesc: 'We aim to create lasting change — not just immediate relief — by building educational legacies across generations.' },
   ]
+
+  const VideoEmbed = ({ id, caption }: { id: string; caption: string }) => (
+    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} className="rounded-2xl overflow-hidden shadow-lg bg-black">
+      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+        <iframe
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.youtube.com/embed/${id}`}
+          title={caption || 'FECT video'}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+      {caption && <p className="text-sm text-gray-600 px-4 py-3 bg-white">{caption}</p>}
+    </motion.div>
+  )
 
   return (
     <div>
@@ -49,29 +85,33 @@ export default function OurStory() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-3 gap-16">
+            {/* Story */}
             <div className="lg:col-span-2">
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
                 <span className="inline-block px-3 py-1 text-xs font-semibold tracking-widest uppercase rounded-full mb-5 text-white" style={{ backgroundColor: 'var(--site-primary)' }}>
                   Established 2009
                 </span>
-                {[
-                  { title: foundTitle,   text: foundText },
-                  { title: missionTitle, text: missionText },
-                  { title: visionTitle,  text: visionText },
-                ].map(s => (
-                  <div key={s.title} className="mb-10">
-                    <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--site-heading-color)' }}>{s.title}</h3>
-                    <p className="text-gray-600 leading-relaxed text-lg">{s.text}</p>
-                  </div>
-                ))}
+                <h2 className="text-3xl font-bold mb-6" style={{ color: 'var(--site-heading-color)' }}>{foundTitle}</h2>
+                <div className="space-y-5">
+                  {paragraphs.map((p, i) => (
+                    <p key={i} className="text-gray-600 leading-relaxed text-lg">{p}</p>
+                  ))}
+                </div>
               </motion.div>
             </div>
 
             {/* Sidebar */}
             <div className="space-y-6">
-              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1} className="rounded-2xl overflow-hidden shadow-lg">
-                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80" alt="FECT Team" className="w-full h-52 object-cover" />
-              </motion.div>
+              {/* YouTube videos (admin-editable) */}
+              {video1 && <VideoEmbed id={video1} caption={video1Caption} />}
+              {video2 && <VideoEmbed id={video2} caption={video2Caption} />}
+
+              {/* Fallback image only when no videos are set */}
+              {!hasVideos && (
+                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1} className="rounded-2xl overflow-hidden shadow-lg">
+                  <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=600&q=80" alt="FECT Team" className="w-full h-52 object-cover" />
+                </motion.div>
+              )}
 
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2} className="rounded-2xl p-6 text-white" style={{ backgroundColor: 'var(--site-primary)' }}>
                 <h4 className="font-bold text-lg mb-3">Registration Details</h4>

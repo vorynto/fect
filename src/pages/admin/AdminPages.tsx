@@ -19,9 +19,9 @@ const SECTIONS: Record<string, { key: string; label: string; titleLabel?: string
   ],
   'Our Story': [
     { key: 'hero',      label: 'Hero Banner',        titleLabel: 'Page Title',      contentLabel: 'Subtitle', image: true },
-    { key: 'founding',  label: 'Founding Story',     titleLabel: 'Section Heading', contentLabel: 'Body Text' },
-    { key: 'mission',   label: 'Our Mission',        titleLabel: 'Heading',         contentLabel: 'Mission Statement' },
-    { key: 'vision',    label: 'Our Vision',         titleLabel: 'Heading',         contentLabel: 'Vision Statement' },
+    { key: 'founding',  label: 'Our Story',          titleLabel: 'Section Heading', contentLabel: 'Story Text (separate paragraphs with a blank line)' },
+    { key: 'video_1',   label: 'YouTube Video 1 (right column)', titleLabel: 'YouTube URL or Video ID', contentLabel: 'Caption (optional)' },
+    { key: 'video_2',   label: 'YouTube Video 2 (right column)', titleLabel: 'YouTube URL or Video ID', contentLabel: 'Caption (optional)' },
     { key: 'value_1',   label: 'Core Value 1',       titleLabel: 'Value Name',      contentLabel: 'Description' },
     { key: 'value_2',   label: 'Core Value 2',       titleLabel: 'Value Name',      contentLabel: 'Description' },
     { key: 'value_3',   label: 'Core Value 3',       titleLabel: 'Value Name',      contentLabel: 'Description' },
