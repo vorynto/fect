@@ -89,8 +89,27 @@ const applySettings = (s: SiteSettings) => {
   }
 }
 
+const CACHE_KEY = 'fect_settings_v1'
+
+function readCache(): SiteSettings | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    return raw ? (JSON.parse(raw) as SiteSettings) : null
+  } catch {
+    return null
+  }
+}
+
+function writeCache(s: SiteSettings) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(s)) } catch { /* quota */ }
+}
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings)
+  const cached = readCache()
+  const [settings, setSettings] = useState<SiteSettings>(cached ?? defaultSettings)
+
+  // Apply cached settings immediately so CSS vars & title are correct before first paint
+  if (cached) applySettings(cached)
 
   const fetchSettings = async () => {
     try {
@@ -98,14 +117,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (data) {
         setSettings(data)
         applySettings(data)
+        writeCache(data)
       }
     } catch {
-      // Supabase not configured or table missing — use defaults
+      // Supabase not configured or table missing — use cached/defaults
     }
   }
 
   useEffect(() => {
-    applySettings(defaultSettings)
+    if (!cached) applySettings(defaultSettings)
     fetchSettings()
   }, [])
 
