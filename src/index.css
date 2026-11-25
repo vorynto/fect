@@ -105,3 +105,12 @@
     box-shadow: 0 20px 40px rgba(0,0,0,0.12);
   }
 }
+
+/* Hide scrollbar but keep scrolling (admin sidebar) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

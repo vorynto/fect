@@ -65,7 +65,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 p-3 overflow-y-auto">
+      <nav className="flex-1 p-3 overflow-y-auto no-scrollbar">
         {(() => {
           const groups: Record<string, typeof nav> = {}
           nav.forEach(item => {
