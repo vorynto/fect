@@ -1,18 +1,18 @@
 Options -MultiViews
 RewriteEngine On
+RewriteBase /
 
 # Force HTTPS
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Serve the built app from the /dist folder while keeping the web root at repo root.
-# 1. Avoid rewrite loops for paths already pointing at /dist
-RewriteCond %{REQUEST_URI} ^/dist/
-RewriteRule ^ - [L]
+# Serve the built app from /dist while the web root stays at the repo root.
+# Everything is handed to /dist; dist/.htaccess serves real files and falls
+# back to dist/index.html for SPA routes (e.g. /admin/login, /donate).
+# No %{DOCUMENT_ROOT} checks — that variable is unreliable on Hostinger subdomains.
 
-# 2. Serve real built files (JS, CSS, images) from /dist
-RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f
+# 1. Already inside /dist — stop here (prevents rewrite loops)
+RewriteRule ^dist/ - [L]
+
+# 2. Hand every other request to /dist
 RewriteRule ^(.*)$ dist/$1 [L]
-
-# 3. SPA fallback — every other route renders the React app
-RewriteRule ^ dist/index.html [L]
